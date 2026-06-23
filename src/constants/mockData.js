@@ -1,0 +1,27 @@
+import {
+    LayoutDashboard,
+    Briefcase,
+    Star,
+    BarChart3,
+    TrendingUp,
+    Target,
+    ArrowLeftRight,
+    Bell,
+    Settings,
+    LogOut,
+    Plus,
+    Pencil,
+    Trash2,
+    Sparkles,
+} from "lucide-react";
+export const NAV_ITEMS = [
+    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { label: "Portfolio", icon: Briefcase, path: "/portfolio" },
+    { label: "Watchlist", icon: Star, path: "/watchlist" },
+    { label: "Analytics", icon: BarChart3, path: "/analytics" },
+    { label: "Market Overview", icon: TrendingUp, path: "/market-overview" },
+    { label: "Goals", icon: Target, path: "/goals" },
+    { label: "Transactions", icon: ArrowLeftRight, path: "/transactions" },
+    { label: "Notifications", icon: Bell, path: "/notifications" },
+    { label: "Settings", icon: Settings, path: "/settings" },
+];
