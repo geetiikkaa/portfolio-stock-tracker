@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -38,9 +39,12 @@ export default function Signup() {
     password: "",
     confirm: "",
   });
-
   const update = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
+  const navigate = useNavigate();
+  const handleSubmit = (e) => {
+    navigate("/dashboard");
+  };
 
   return (
     <div className="min-h-screen w-full bg-[#0a0a12] flex items-center justify-center p-4">
@@ -53,7 +57,10 @@ export default function Signup() {
 
         {/* Heading */}
         <h1 className="text-white text-2xl font-bold text-center mb-1">
-          Create Account <span role="img" aria-label="rocket">🚀</span>
+          Create Account{" "}
+          <span role="img" aria-label="rocket">
+            🚀
+          </span>
         </h1>
         <p className="text-gray-400 text-sm text-center mb-6">
           Join us and start your investment journey
@@ -150,6 +157,7 @@ export default function Signup() {
 
           <button
             type="submit"
+            onClick={handleSubmit}
             className="w-full rounded-lg bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition"
           >
             Create Account
@@ -178,7 +186,10 @@ export default function Signup() {
         {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
           Already have an account?{" "}
-          <a href="#" className="text-[#9d7bff] hover:text-[#b39bff] font-medium">
+          <a
+            href="/login"
+            className="text-[#9d7bff] hover:text-[#b39bff] font-medium"
+          >
             Login
           </a>
         </p>

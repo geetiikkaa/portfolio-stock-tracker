@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -29,6 +30,11 @@ const AppleIcon = () => (
 );
 
 export default function Login() {
+  const navigate = useNavigate();
+  const handleSubmit = (e) => {
+    navigate("/dashboard");
+  };
+
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [email, setEmail] = useState("");
@@ -45,7 +51,10 @@ export default function Login() {
 
         {/* Heading */}
         <h1 className="text-white text-2xl font-bold text-center mb-1">
-          Welcome Back <span role="img" aria-label="wave">👋</span>
+          Welcome Back{" "}
+          <span role="img" aria-label="wave">
+            👋
+          </span>
         </h1>
         <p className="text-gray-400 text-sm text-center mb-6">
           Login to continue to your account
@@ -106,6 +115,7 @@ export default function Login() {
 
           <button
             type="submit"
+            onClick={handleSubmit}
             className="w-full rounded-lg bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition"
           >
             Login
@@ -134,7 +144,10 @@ export default function Login() {
         {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
           Don&apos;t have an account?{" "}
-          <a href="#" className="text-[#9d7bff] hover:text-[#b39bff] font-medium">
+          <a
+            href="/registration"
+            className="text-[#9d7bff] hover:text-[#b39bff] font-medium"
+          >
             Sign up
           </a>
         </p>
