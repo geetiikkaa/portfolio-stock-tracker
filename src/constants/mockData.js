@@ -15,7 +15,7 @@ export const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { label: "Portfolio", icon: Briefcase, path: "/portfolio" },
     { label: "Watchlist", icon: Star, path: "/watchlist" },
-    // { label: "Analytics", icon: BarChart3, path: "/analytics" },
+    { label: "Analytics", icon: BarChart3, path: "/analytics" },
     { label: "Market Overview", icon: TrendingUp, path: "/market-overview" },
     // { label: "Goals", icon: Target, path: "/goals" },
     { label: "Transactions", icon: ArrowLeftRight, path: "/transactions" },
