@@ -15,12 +15,12 @@ export const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { label: "Portfolio", icon: Briefcase, path: "/portfolio" },
     { label: "Watchlist", icon: Star, path: "/watchlist" },
-    { label: "Analytics", icon: BarChart3, path: "/analytics" },
+    // { label: "Analytics", icon: BarChart3, path: "/analytics" },
     { label: "Market Overview", icon: TrendingUp, path: "/market-overview" },
-    { label: "Goals", icon: Target, path: "/goals" },
+    // { label: "Goals", icon: Target, path: "/goals" },
     { label: "Transactions", icon: ArrowLeftRight, path: "/transactions" },
     { label: "Notifications", icon: Bell, path: "/notifications" },
-    { label: "Settings", icon: Settings, path: "/settings" },
+    // { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
 export const ASSET_TABS = ["All", "Equity", "Mutual Funds", "Crypto", "Cash"];
@@ -189,7 +189,6 @@ export const TYPE_STYLES = {
         icon: ArrowUpRight,
     },
 };
-
 export const emptyForm = {
     name: "",
     ticker: "",
@@ -198,3 +197,120 @@ export const emptyForm = {
     qty: "",
     amount: "",
 };
+export const TIME_RANGES = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year",
+    "All Time",
+];
+export const RANGE_DATA = {
+    Today: {
+        data: [
+            { label: "9AM", value: 24.12 },
+            { label: "11AM", value: 24.28 },
+            { label: "1PM", value: 24.05 },
+            { label: "3PM", value: 24.41 },
+            { label: "5PM", value: 24.75 },
+        ],
+        changeLabel: "+0.42% (Today)",
+    },
+    "This Week": {
+        data: [
+            { label: "Mon", value: 23.85 },
+            { label: "Tue", value: 24.05 },
+            { label: "Wed", value: 23.78 },
+            { label: "Thu", value: 24.3 },
+            { label: "Fri", value: 24.55 },
+            { label: "Sat", value: 24.68 },
+            { label: "Sun", value: 24.75 },
+        ],
+        changeLabel: "+1.83% (This Week)",
+    },
+    "This Month": {
+        data: [
+            { label: "W1", value: 21.4 },
+            { label: "W2", value: 22.1 },
+            { label: "W3", value: 23.6 },
+            { label: "W4", value: 24.75 },
+        ],
+        changeLabel: "+5.92% (This Month)",
+    },
+    "This Year": {
+        data: [
+            { label: "Jan", value: 14.1 },
+            { label: "Feb", value: 15.6 },
+            { label: "Mar", value: 14.6 },
+            { label: "Apr", value: 17.8 },
+            { label: "May", value: 24.75 },
+            { label: "Jun", value: 22.9 },
+        ],
+        changeLabel: "+12.56% (This Year)",
+    },
+    "All Time": {
+        data: [
+            { label: "2021", value: 8.2 },
+            { label: "2022", value: 11.5 },
+            { label: "2023", value: 17.8 },
+            { label: "2024", value: 24.75 },
+        ],
+        changeLabel: "+68.4% (All Time)",
+    },
+};
+export const C = {
+    bgTop: "#0B0F1D",
+    bgBottom: "#060810",
+    card: "#11162A",
+    cardBorder: "rgba(255,255,255,0.06)",
+    text: "#F3F5FB",
+    muted: "#8A91A8",
+    mutedSoft: "#6B7286",
+    green: "#34D6A0",
+    greenSoft: "rgba(52,214,160,0.14)",
+    purple: "#8C7CF6",
+    red: "#F0716B",
+    blue: "#5B72F0",
+    teal: "#2BCB8E",
+    orange: "#F5A623",
+    lavender: "#B49CF5",
+};
+export const cardStyle = {
+    background:
+        "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
+    border: `1px solid ${C.cardBorder}`,
+    borderRadius: "20px",
+    boxShadow:
+        "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
+};
+export const donutData = [
+    { name: "Equity", value: 65, color: C.blue },
+    { name: "Mutual Funds", value: 20, color: C.teal },
+    { name: "Crypto", value: 10, color: C.orange },
+    { name: "Cash", value: 5, color: C.lavender },
+];
+export const transactions = [
+    {
+        symbol: "APPLE",
+        name: "Apple Inc.",
+        action: "Buy 10 Shares",
+        amount: "₹21,250",
+        time: "2h ago",
+        color: C.red,
+    },
+    {
+        symbol: "RELIANCE",
+        name: "Reliance Ind.",
+        action: "Buy 5 Shares",
+        amount: "₹12,890",
+        time: "5h ago",
+        color: C.blue,
+    },
+    {
+        symbol: "TCS",
+        name: "Tata Consultancy",
+        action: "Buy 8 Shares",
+        amount: "₹18,190",
+        time: "1d ago",
+        color: C.teal,
+    },
+];

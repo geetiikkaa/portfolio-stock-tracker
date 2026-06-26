@@ -1,16 +1,14 @@
-import {
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
 import { NAV_ITEMS } from "../constants/mockData.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // 1. Import useLocation
 
 export default function PortfolioSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <>
-      <aside className="w-60 h-screen sticky top-0 w-60 h-screen shrink-0 border-r border-white/10 bg-[#0d0d18] flex flex-col py-6 px-4">
+      <aside className="w-60 h-screen sticky top-0 shrink-0 border-r border-white/10 bg-[#0d0d18] flex flex-col py-6 px-4">
         <div className="flex items-center gap-2 px-2 mb-8">
           <Sparkles size={20} className="text-[#9d7bff]" />
           <span className="font-semibold text-lg">Wealthora</span>
@@ -18,7 +16,8 @@ export default function PortfolioSidebar() {
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map(({ label, icon: Icon, path }) => {
-            const active = label === "Portfolio";
+            const active = location.pathname === path;
+
             return (
               <button
                 onClick={() => navigate(path)}
@@ -36,7 +35,10 @@ export default function PortfolioSidebar() {
           })}
         </nav>
 
-        <button onClick={() => navigate("/")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-white/5 hover:text-gray-200 transition">
+        <button
+          onClick={() => navigate("/")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-white/5 hover:text-gray-200 transition"
+        >
           <LogOut size={17} />
           Logout
         </button>

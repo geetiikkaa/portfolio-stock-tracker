@@ -1,33 +1,6 @@
 import { useState } from "react";
-import {
-  LayoutDashboard,
-  Briefcase,
-  Star,
-  BarChart3,
-  TrendingUp,
-  Target,
-  ArrowLeftRight,
-  Bell,
-  Settings,
-  LogOut,
-  Plus,
-  Pencil,
-  Trash2,
-  Sparkles,
-} from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
-
-const NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Portfolio", icon: Briefcase },
-  { label: "Watchlist", icon: Star },
-  { label: "Analytics", icon: BarChart3 },
-  { label: "Market Overview", icon: TrendingUp },
-  { label: "Goals", icon: Target },
-  { label: "Transactions", icon: ArrowLeftRight },
-  { label: "Notifications", icon: Bell },
-  { label: "Settings", icon: Settings },
-];
 
 const TABS = ["All Holdings", "Equity", "Mutual Funds", "Crypto", "Cash"];
 

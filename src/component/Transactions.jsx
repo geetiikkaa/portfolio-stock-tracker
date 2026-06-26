@@ -9,12 +9,12 @@ import {
   Clock3,
 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
-import INITIAL_TRANSACTIONS from "../constants/mockData";
-import emptyForm from "../constants/mockData";
-import ASSET_TABS from "../constants/mockData";
-import TYPE_FILTERS from "../constants/mockData";
-import inr from "../constants/mockData";
-import TYPE_STYLES from "../constants/mockData";
+import { INITIAL_TRANSACTIONS } from "../constants/mockData";
+import { emptyForm } from "../constants/mockData";
+import { ASSET_TABS } from "../constants/mockData";
+import { TYPE_FILTERS } from "../constants/mockData";
+import { inr } from "../constants/mockData";
+import { TYPE_STYLES } from "../constants/mockData";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
