@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { Plus, Star, X, ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
+import ProfileAvatar from "./ui/ProfileAvatar";
+import Tabs from "./ui/Tabs";
 
 const C = {
   bgTop: "#0B0F1D",
@@ -291,9 +293,8 @@ export default function Watchlist() {
     <div className="flex">
       <PortfolioSidebar />
       <div
-        className="w-full min-h-screen p-6"
+        className="w-full min-h-screen p-6 bg-[#0a0a12]"
         style={{
-          background: `linear-gradient(180deg, ${C.bgTop} 0%, ${C.bgBottom} 100%)`,
           fontFamily:
             "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         }}
@@ -308,24 +309,12 @@ export default function Watchlist() {
           <div className="flex gap-4">
             <button
               onClick={() => setShowForm((v) => !v)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-              style={{
-                background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
-                color: "#fff",
-              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] text-white"
             >
               {showForm ? <X size={15} /> : <Plus size={15} />}
               {showForm ? "Cancel" : "Add Stock"}
             </button>
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{
-                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-                color: "#fff",
-              }}
-            >
-              G
-            </div>
+            <ProfileAvatar />
           </div>
         </div>
 
@@ -440,29 +429,10 @@ export default function Watchlist() {
         )}
 
         {/* Tabs */}
-        <div className="flex items-center gap-6 mb-4">
-          {TABS.map((tab) => {
-            const active = tab === activeTab;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="text-sm font-medium pb-1.5"
-                style={{
-                  color: active ? C.text : C.muted,
-                  borderBottom: active
-                    ? `2px solid ${C.purple}`
-                    : "2px solid transparent",
-                }}
-              >
-                {tab}
-              </button>
-            );
-          })}
-        </div>
+        <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Table */}
-        <div style={cardStyle} className="p-5">
+        <div style={cardStyle} className="p-5 mt-8">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: `1px solid ${C.cardBorder}` }}>

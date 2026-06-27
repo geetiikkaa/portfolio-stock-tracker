@@ -26,6 +26,7 @@ import { formatINR } from "../utils/utils";
 import BarReturnTooltip from "./ui/BarReturnToolTip";
 import { formatPct } from "../utils/utils";
 import PortfolioGrowthCard from "./ui/PortfolioGrowthCard";
+import ProfileAvatar from "./ui/ProfileAvatar";
 
 function renderActiveSlice(props) {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
@@ -114,15 +115,7 @@ export default function Analytics() {
                 );
               })}
             </div>
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{
-                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-                color: "#fff",
-              }}
-            >
-              G
-            </div>
+            <ProfileAvatar />
           </div>
         </div>
 

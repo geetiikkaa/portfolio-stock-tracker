@@ -9,12 +9,15 @@ import {
   Clock3,
 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
-import { C, cardStyle, INITIAL_TRANSACTIONS } from "../constants/mockData";
+import { cardStyle, INITIAL_TRANSACTIONS } from "../constants/mockData";
 import { emptyForm } from "../constants/mockData";
 import { ASSET_TABS } from "../constants/mockData";
 import { TYPE_FILTERS } from "../constants/mockData";
 import { inr } from "../constants/mockData";
 import { TYPE_STYLES } from "../constants/mockData";
+import Tabs from "./ui/Tabs";
+import ProfileAvatar from "./ui/ProfileAvatar";
+import Dropdown from "./ui/Dropdown";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
@@ -23,7 +26,6 @@ export default function Transactions() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
-
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
       const matchesTab = activeTab === "All" || t.assetClass === activeTab;
@@ -35,7 +37,6 @@ export default function Transactions() {
       return matchesTab && matchesType && matchesSearch;
     });
   }, [transactions, activeTab, typeFilter, search]);
-
   const totals = useMemo(() => {
     const bought = transactions
       .filter((t) => t.type === "Buy" || t.type === "Deposit")
@@ -45,15 +46,12 @@ export default function Transactions() {
       .reduce((sum, t) => sum + t.amount, 0);
     return { bought, sold, net: bought - sold };
   }, [transactions]);
-
   const handleDelete = (id) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.amount) return;
-
     const newTxn = {
       id: Date.now(),
       ticker:
@@ -102,15 +100,7 @@ export default function Transactions() {
                 {showForm ? <X size={16} /> : <Plus size={16} />}
                 {showForm ? "Cancel" : "Add Transaction"}
               </button>
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-                style={{
-                  background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-                  color: "#fff",
-                }}
-              >
-                G
-              </div>
+              <ProfileAvatar />
             </div>
           </div>
         </div>
@@ -262,24 +252,11 @@ export default function Transactions() {
 
         {/* Tabs + filters */}
         <div className="flex items-center justify-between flex-wrap gap-4 mb-5">
-          <div className="flex items-center gap-6 border-b border-white/10 sm:border-0 w-full sm:w-auto">
-            {ASSET_TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 sm:pb-0 text-sm whitespace-nowrap transition ${
-                  activeTab === tab
-                    ? "text-white font-medium"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <span className="absolute left-0 right-0 -bottom-px sm:-bottom-1 h-[2px] bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] rounded-full" />
-                )}
-              </button>
-            ))}
-          </div>
+          <Tabs
+            tabs={ASSET_TABS}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
 
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -294,7 +271,7 @@ export default function Transactions() {
                 className="w-52 rounded-lg bg-[#1a1a28] border border-white/10 pl-8 pr-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
               />
             </div>
-            <select
+            {/* <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-gray-300 outline-none focus:border-[#7c5cff]/60"
@@ -304,7 +281,12 @@ export default function Transactions() {
                   {t}
                 </option>
               ))}
-            </select>
+            </select> */}
+            <Dropdown
+              list={TYPE_FILTERS}
+              selectedRange={typeFilter}
+              setSelectedRange={setTypeFilter}
+            />
           </div>
         </div>
 

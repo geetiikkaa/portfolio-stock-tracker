@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import { C, cardStyle } from "../constants/mockData";
+import Tabs from "./ui/Tabs";
+import ProfileAvatar from "./ui/ProfileAvatar";
 
 const TABS = ["All Holdings", "Equity", "Mutual Funds", "Crypto", "Cash"];
 
@@ -87,45 +89,20 @@ export default function PortfolioPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Portfolio</h1>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition">
+            <button className="flex items-center gap-2 rounded-full bg-linear-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition">
               <Plus size={16} />
               Add New
             </button>
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{
-                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-                color: "#fff",
-              }}
-            >
-              G
-            </div>
+            <ProfileAvatar />
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-6 border-b border-white/10 mb-5">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`relative pb-3 text-sm transition ${
-                activeTab === tab
-                  ? "text-white font-medium"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-            >
-              {tab}
-              {activeTab === tab && (
-                <span className="absolute left-0 right-0 -bottom-px h-[2px] bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] rounded-full" />
-              )}
-            </button>
-          ))}
-        </div>
+        <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Table */}
         <div
-          className="rounded-2xl border border-white/10  overflow-hidden"
+          className="rounded-2xl border border-white/10  overflow-hidden mt-8"
           style={{ background: cardStyle.background }}
         >
           <table className="w-full text-sm">

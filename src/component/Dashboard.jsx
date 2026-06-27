@@ -27,6 +27,7 @@ import HealthGauge from "./ui/HealthGauge";
 import TopBar from "./ui/TopBar";
 import CustomTooltip from "./ui/CustomToolTip";
 import TimeRangeDropdown from "./ui/TimeRangeDropdown";
+import AssetAllocationChart from "./ui/AssetAllocationChart";
 
 const spark = (base, variance) =>
   Array.from({ length: 10 }, (_, i) => ({
@@ -233,57 +234,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div style={cardStyle} className="p-5">
-            <div
-              className="text-sm font-semibold mb-1"
-              style={{ color: C.text }}
-            >
-              Asset Allocation
-            </div>
-            <div className="flex items-center">
-              <div className="relative" style={{ width: 130, height: 130 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={42}
-                      outerRadius={62}
-                      paddingAngle={3}
-                      stroke="none"
-                    >
-                      {donutData.map((d, i) => (
-                        <Cell key={i} fill={d.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <div className="text-sm font-bold" style={{ color: C.text }}>
-                    ₹24,75,430
-                  </div>
-                  <div className="text-xs" style={{ color: C.muted }}>
-                    Total
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2.5 ml-2">
-                {donutData.map((d) => (
-                  <div key={d.name} className="flex items-center gap-2 text-xs">
-                    <span
-                      className="w-2 h-2 rounded-full inline-block"
-                      style={{ background: d.color }}
-                    />
-                    <span style={{ color: C.muted }}>{d.name}</span>
-                    <span className="font-semibold" style={{ color: C.text }}>
-                      {d.value}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <AssetAllocationChart />
         </div>
 
         {/* Bottom row */}
