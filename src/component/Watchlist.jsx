@@ -305,17 +305,28 @@ export default function Watchlist() {
           <div className="text-xl font-bold" style={{ color: C.text }}>
             Watchlist
           </div>
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
-              color: "#fff",
-            }}
-          >
-            {showForm ? <X size={15} /> : <Plus size={15} />}
-            {showForm ? "Cancel" : "Add Stock"}
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
+              style={{
+                background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
+                color: "#fff",
+              }}
+            >
+              {showForm ? <X size={15} /> : <Plus size={15} />}
+              {showForm ? "Cancel" : "Add Stock"}
+            </button>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{
+                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
+                color: "#fff",
+              }}
+            >
+              G
+            </div>
+          </div>
         </div>
 
         {/* Add stock form */}

@@ -18,6 +18,7 @@ import {
   COLORS,
   MONTHLY_RETURNS,
   ALLOCATION,
+  C,
 } from "../constants/mockData";
 import Card from "./ui/Card";
 import PieTooltip from "./ui/PieToolTip";
@@ -74,44 +75,54 @@ export default function Analytics() {
       }}
     >
       <PortfolioSidebar />
-      <div className="mx-auto max-w-[1400px] p-6 md:p-8">
+      <div className="max-w-[1400px] w-full p-6 md:p-8">
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Analytics
           </h1>
-
-          <div
-            className="flex items-center gap-1 rounded-xl border p-1"
-            style={{
-              borderColor: COLORS.cardBorder,
-              background: "rgba(255,255,255,0.02)",
-            }}
-          >
-            {RANGE_OPTIONS.map((opt) => {
-              const active = opt === range;
-              return (
-                <button
-                  key={opt}
-                  onClick={() => setRange(opt)}
-                  className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                    active
-                      ? "text-white shadow-lg shadow-indigo-500/30"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                  }`}
-                  style={
-                    active
-                      ? {
-                          background:
-                            "linear-gradient(135deg, #6d5bf0, #8b5cf6)",
-                        }
-                      : undefined
-                  }
-                >
-                  {opt}
-                </button>
-              );
-            })}
+          <div className="flex gap-4">
+            <div
+              className="flex items-center gap-1 rounded-xl border p-1"
+              style={{
+                borderColor: COLORS.cardBorder,
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              {RANGE_OPTIONS.map((opt) => {
+                const active = opt === range;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setRange(opt)}
+                    className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                      active
+                        ? "text-white shadow-lg shadow-indigo-500/30"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    }`}
+                    style={
+                      active
+                        ? {
+                            background:
+                              "linear-gradient(135deg, #6d5bf0, #8b5cf6)",
+                          }
+                        : undefined
+                    }
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{
+                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
+                color: "#fff",
+              }}
+            >
+              G
+            </div>
           </div>
         </div>
 

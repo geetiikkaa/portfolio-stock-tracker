@@ -11,7 +11,7 @@ export default function PortfolioSidebar() {
       <aside className="w-60 h-screen sticky top-0 shrink-0 border-r border-white/10 bg-[#0d0d18] flex flex-col py-6 px-4">
         <div className="flex items-center gap-2 px-2 mb-8">
           <Sparkles size={20} className="text-[#9d7bff]" />
-          <span className="font-semibold text-lg">Wealthora</span>
+          <span className="font-semibold text-lg text-white">Wealthora</span>
         </div>
 
         <nav className="flex-1 space-y-1">

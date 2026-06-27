@@ -9,7 +9,7 @@ import {
   Clock3,
 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
-import { INITIAL_TRANSACTIONS } from "../constants/mockData";
+import { C, cardStyle, INITIAL_TRANSACTIONS } from "../constants/mockData";
 import { emptyForm } from "../constants/mockData";
 import { ASSET_TABS } from "../constants/mockData";
 import { TYPE_FILTERS } from "../constants/mockData";
@@ -89,18 +89,29 @@ export default function Transactions() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h1 className="text-2xl font-bold">Transactions</h1>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#12121d] px-3.5 py-2 text-sm text-gray-300 hover:bg-white/5 transition">
-              <Download size={15} />
-              Export
-            </button>
-            <button
-              onClick={() => setShowForm((v) => !v)}
-              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition"
-            >
-              {showForm ? <X size={16} /> : <Plus size={16} />}
-              {showForm ? "Cancel" : "Add Transaction"}
-            </button>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-3">
+              <button className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#12121d] px-3.5 py-2 text-sm text-gray-300 hover:bg-white/5 transition">
+                <Download size={15} />
+                Export
+              </button>
+              <button
+                onClick={() => setShowForm((v) => !v)}
+                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition"
+              >
+                {showForm ? <X size={16} /> : <Plus size={16} />}
+                {showForm ? "Cancel" : "Add Transaction"}
+              </button>
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+                style={{
+                  background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
+                  color: "#fff",
+                }}
+              >
+                G
+              </div>
+            </div>
           </div>
         </div>
 
@@ -211,7 +222,10 @@ export default function Transactions() {
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4">
+          <div
+            className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
+            style={cardStyle}
+          >
             <div className="text-xs text-gray-500 mb-1">
               Total Bought / Deposited
             </div>
@@ -219,7 +233,10 @@ export default function Transactions() {
               {inr(totals.bought)}
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4">
+          <div
+            className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
+            style={cardStyle}
+          >
             <div className="text-xs text-gray-500 mb-1">
               Total Sold / Withdrawn
             </div>
@@ -227,7 +244,10 @@ export default function Transactions() {
               {inr(totals.sold)}
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4">
+          <div
+            className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
+            style={cardStyle}
+          >
             <div className="text-xs text-gray-500 mb-1">Net Flow</div>
             <div
               className={`text-xl font-semibold ${
@@ -289,7 +309,10 @@ export default function Transactions() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl border border-white/10 bg-[#12121d] overflow-hidden">
+        <div
+          className="rounded-2xl border border-white/10 overflow-hidden"
+          style={cardStyle}
+        >
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 text-xs uppercase tracking-wide border-b border-white/10">

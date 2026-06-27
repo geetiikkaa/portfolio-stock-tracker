@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
+import { C, cardStyle } from "../constants/mockData";
 
 const TABS = ["All Holdings", "Equity", "Mutual Funds", "Crypto", "Cash"];
 
@@ -85,10 +86,21 @@ export default function PortfolioPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Portfolio</h1>
-          <button className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition">
-            <Plus size={16} />
-            Add New
-          </button>
+          <div className="flex gap-4">
+            <button className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition">
+              <Plus size={16} />
+              Add New
+            </button>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{
+                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
+                color: "#fff",
+              }}
+            >
+              G
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -112,7 +124,10 @@ export default function PortfolioPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl border border-white/10 bg-[#12121d] overflow-hidden">
+        <div
+          className="rounded-2xl border border-white/10  overflow-hidden"
+          style={{ background: cardStyle.background }}
+        >
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 text-xs uppercase tracking-wide border-b border-white/10">
@@ -171,7 +186,10 @@ export default function PortfolioPage() {
         </div>
 
         {/* Summary footer */}
-        <div className="mt-6 rounded-2xl border border-white/10 bg-[#12121d] px-8 py-5 flex items-center justify-between flex-wrap gap-6">
+        <div
+          className="mt-6 rounded-2xl border border-white/10 px-8 py-5 flex items-center justify-between flex-wrap gap-6"
+          style={cardStyle}
+        >
           <div>
             <div className="text-xs text-gray-500 mb-1">Total Investment</div>
             <div className="text-base font-semibold text-white">

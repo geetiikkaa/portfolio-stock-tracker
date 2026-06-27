@@ -8,6 +8,7 @@ import PortfolioSidebar from "./component/PortfolioSidebar";
 import Transactions from "./component/Transactions";
 import Analytics from "./component/Analytics";
 import Watchlist from "./component/Watchlist";
+import MarketOverview from "./component/MarketOverview";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="market-overview" element={<MarketOverview />} />
         </Routes>
       </BrowserRouter>
     </>

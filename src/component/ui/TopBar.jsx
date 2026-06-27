@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { C } from "../../constants/mockData";
 import { X } from "lucide-react";
-import { Bell, Moon, Power } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export default function TopBar({ searchQuery, setSearchQuery }) {
   return (
