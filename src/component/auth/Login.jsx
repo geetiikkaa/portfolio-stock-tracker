@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -31,10 +31,9 @@ const AppleIcon = () => (
 
 export default function Login() {
   const navigate = useNavigate();
-  const handleSubmit = (e) => {
+  const handleSubmit = () => {
     navigate("/dashboard");
   };
-
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [email, setEmail] = useState("");
@@ -51,7 +50,7 @@ export default function Login() {
 
         {/* Heading */}
         <h1 className="text-white text-2xl font-bold text-center mb-1">
-          Welcome Back{" "}
+          Welcome Back
           <span role="img" aria-label="wave">
             👋
           </span>

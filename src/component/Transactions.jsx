@@ -242,7 +242,7 @@ export default function Transactions() {
 
         {/* Tabs + filters */}
         <div className="flex items-center justify-between flex-wrap gap-4 mb-5">
-          <div className="flex items-center gap-6 border-b border-white/10 sm:border-0 w-full sm:w-auto overflow-x-auto">
+          <div className="flex items-center gap-6 border-b border-white/10 sm:border-0 w-full sm:w-auto">
             {ASSET_TABS.map((tab) => (
               <button
                 key={tab}

@@ -4,10 +4,8 @@ import {
     Star,
     BarChart3,
     TrendingUp,
-    Target,
     ArrowLeftRight,
-    Bell,
-    Settings,
+    Target,
 } from "lucide-react";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
@@ -17,9 +15,9 @@ export const NAV_ITEMS = [
     { label: "Watchlist", icon: Star, path: "/watchlist" },
     { label: "Analytics", icon: BarChart3, path: "/analytics" },
     { label: "Market Overview", icon: TrendingUp, path: "/market-overview" },
-    // { label: "Goals", icon: Target, path: "/goals" },
+    { label: "Goals", icon: Target, path: "/goals" },
     { label: "Transactions", icon: ArrowLeftRight, path: "/transactions" },
-    { label: "Notifications", icon: Bell, path: "/notifications" },
+    // { label: "Notifications", icon: Bell, path: "/notifications" },
     // { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
@@ -313,4 +311,78 @@ export const transactions = [
         time: "1d ago",
         color: C.teal,
     },
+];
+export const RANGE_OPTIONS = ["1M", "3M", "6M", "1Y", "All"];
+export const RANGE_DAYS = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, All: 730 };
+export function seededRandom(seed) {
+    let s = seed;
+    return () => {
+        s = (s * 9301 + 49297) % 233280;
+        return s / 233280;
+    };
+}
+export function generateGrowthSeries(totalDays) {
+    const rand = seededRandom(7321);
+    const today = new Date();
+    const dayMs = 86400000;
+
+    let portfolioRaw = 0;
+    let niftyRaw = 0;
+    const raw = [];
+
+    for (let i = totalDays - 1; i >= 0; i--) {
+        portfolioRaw += 0.137 + (rand() - 0.5) * 1.6;
+        niftyRaw += 0.071 + (rand() - 0.5) * 1.3;
+        raw.push({
+            date: new Date(today.getTime() - i * dayMs),
+            portfolio: portfolioRaw,
+            nifty: niftyRaw,
+        });
+    }
+
+    // Anchor so that exactly one year back from today reads  -12% / -8%,
+    // matching the reference chart's starting point for the 1Y view.
+    const anchorIdx = Math.max(0, raw.length - 365);
+    const shiftP = -12 - raw[anchorIdx].portfolio;
+    const shiftN = -8 - raw[anchorIdx].nifty;
+
+    return raw.map((d) => ({
+        ...d,
+        portfolio: Math.round((d.portfolio + shiftP) * 10) / 10,
+        nifty: Math.round((d.nifty + shiftN) * 10) / 10,
+    }));
+}
+export const COLORS = {
+    pageBg: "#070b14",
+    card: "#0b1020",
+    cardBorder: "#1b2236",
+    grid: "#1a2236",
+    axisText: "#5b6478",
+    purple: "#7c6ef6", // "Your Portfolio" line / active pill / equity
+    purpleSoft: "#4c46b8",
+    green: "#34d399", // "NIFTY 50" line / positive metrics
+    red: "#f87171", // negative metrics
+    orange: "#f97316", // crypto slice
+    violet: "#a855f7", // mutual funds slice
+    gray: "#94a3b8", // cash slice
+};
+export const MONTHLY_RETURNS = [
+    { month: "Jul", value: 5.6 },
+    { month: "Aug", value: 1.4 },
+    { month: "Sep", value: -2.8 },
+    { month: "Oct", value: 6.9 },
+    { month: "Nov", value: -1.6 },
+    { month: "Dec", value: 2.2 },
+    { month: "Jan", value: -4.35 },
+    { month: "Feb", value: 3.1 },
+    { month: "Mar", value: 8.25 },
+    { month: "Apr", value: 2.4 },
+    { month: "May", value: -1.1 },
+    { month: "Jun", value: 1.8 },
+];
+export const ALLOCATION = [
+    { name: "Equity", value: 1361490, color: COLORS.purple },
+    { name: "Mutual Funds", value: 495085, color: COLORS.violet },
+    { name: "Crypto", value: 371315, color: COLORS.orange },
+    { name: "Cash", value: 247540, color: COLORS.gray },
 ];

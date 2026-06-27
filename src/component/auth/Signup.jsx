@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -186,12 +187,12 @@ export default function Signup() {
         {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
           Already have an account?{" "}
-          <a
-            href="/login"
+          <Link
+            to="/"
             className="text-[#9d7bff] hover:text-[#b39bff] font-medium"
           >
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>

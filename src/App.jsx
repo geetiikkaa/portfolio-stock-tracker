@@ -7,6 +7,7 @@ import Dashboard from "./component/Dashboard";
 import PortfolioSidebar from "./component/PortfolioSidebar";
 import Transactions from "./component/Transactions";
 import Analytics from "./component/Analytics";
+import Watchlist from "./component/Watchlist";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/portfolioSidebar" element={<PortfolioSidebar />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/watchlist" element={<Watchlist />} />
         </Routes>
       </BrowserRouter>
     </>
