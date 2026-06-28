@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   Plus,
   Search,
-  Download,
   Trash2,
   X,
   CheckCircle2,
@@ -89,10 +88,10 @@ export default function Transactions() {
           <h1 className="text-2xl font-bold">Transactions</h1>
           <div className="flex gap-4">
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#12121d] px-3.5 py-2 text-sm text-gray-300 hover:bg-white/5 transition">
+              {/* <button className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#12121d] px-3.5 py-2 text-sm text-gray-300 hover:bg-white/5 transition">
                 <Download size={15} />
                 Export
-              </button>
+              </button> */}
               <button
                 onClick={() => setShowForm((v) => !v)}
                 className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-4 py-2 text-sm font-semibold shadow-lg shadow-[#7c5cff]/20 hover:opacity-90 transition"

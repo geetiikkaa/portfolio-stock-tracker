@@ -6,20 +6,11 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   CartesianGrid,
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
 import { useNavigate } from "react-router-dom";
-import {
-  RANGE_DATA,
-  donutData,
-  C,
-  cardStyle,
-  transactions,
-} from "../constants/mockData";
+import { RANGE_DATA, C, cardStyle, transactions } from "../constants/mockData";
 import Dot from "./ui/Dot";
 import Sparkline from "./ui/Sparkline";
 import StatCard from "./ui/StatCard";
@@ -309,11 +300,21 @@ export default function Dashboard() {
           </div>
 
           <div style={cardStyle} className="p-5">
-            <div
-              className="text-sm font-semibold mb-3"
-              style={{ color: C.text }}
-            >
-              Market Snapshot
+            <div className="flex items-center justify-between mb-3">
+              {" "}
+              <div
+                className="text-sm font-semibold mb-3"
+                style={{ color: C.text }}
+              >
+                Market Snapshot
+              </div>
+              <div
+                className="text-xs font-medium cursor-pointer"
+                style={{ color: C.purple }}
+                onClick={() => navigate("/market-overview")}
+              >
+                View All
+              </div>
             </div>
             <div className="flex flex-col gap-4">
               {filteredIndices.length === 0 ? (

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
+import ProfileAvatar from "./ui/ProfileAvatar";
 
 const C = {
   bgTop: "#0B0F1D",
@@ -256,22 +257,12 @@ export default function MarketOverview() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="text-xl font-bold" style={{ color: C.text }}>
+          <div className="text-2xl font-bold" style={{ color: C.text }}>
             Market Overview
           </div>
 
           <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen((v) => !v)}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{
-                background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-                color: "#fff",
-              }}
-              aria-label="Open profile menu"
-            >
-              G
-            </button>
+            <ProfileAvatar />
 
             {profileOpen && (
               <div

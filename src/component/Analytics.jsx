@@ -18,7 +18,6 @@ import {
   COLORS,
   MONTHLY_RETURNS,
   ALLOCATION,
-  C,
 } from "../constants/mockData";
 import Card from "./ui/Card";
 import PieTooltip from "./ui/PieToolTip";

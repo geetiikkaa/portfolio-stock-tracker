@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
 import { Plus, Star, X, ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
@@ -36,17 +36,28 @@ const cardStyle = {
 const TABS = ["All", "Favourites", "Trending"];
 const AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
 
-// Synthetic sparkline trend - real intraday history would come from a
-// market-data API; this just gives each row a plausible up/down shape that
-// matches its change %.
-const trendSpark = (direction, points = 10) =>
-  Array.from({ length: points }, (_, i) => ({
-    i,
-    v:
-      direction === "up"
-        ? 10 + i * 1.4 + Math.sin(i * 1.3) * 2
-        : 22 - i * 1.4 + Math.sin(i * 1.3) * 2,
-  }));
+const trendSpark = (direction, points = 30) => {
+  const data = [];
+
+  let value = direction === "up" ? 20 : 80;
+
+  for (let i = 0; i < points; i++) {
+    // Big movement every point
+    const move = (Math.random() * 8 + 2) * (direction === "up" ? 1 : -1);
+
+    // Frequent pullback
+    const correction = (Math.random() - 0.5) * 10;
+
+    value += move + correction;
+
+    data.push({
+      i,
+      v: value,
+    });
+  }
+
+  return data;
+};
 
 const INITIAL_STOCKS = [
   {
@@ -59,6 +70,10 @@ const INITIAL_STOCKS = [
     change: 2.35,
     favourite: true,
     trending: true,
+    sparkProps: {
+      drift: 2.5,
+      volatility: 1.4,
+    },
   },
   {
     id: 2,
@@ -70,6 +85,10 @@ const INITIAL_STOCKS = [
     change: -1.25,
     favourite: false,
     trending: true,
+    sparkProps: {
+      drift: 2.0,
+      volatility: 3.5,
+    },
   },
   {
     id: 3,
@@ -81,6 +100,10 @@ const INITIAL_STOCKS = [
     change: 3.2,
     favourite: true,
     trending: true,
+    sparkProps: {
+      drift: 3.0,
+      volatility: 2.8,
+    },
   },
   {
     id: 4,
@@ -92,6 +115,10 @@ const INITIAL_STOCKS = [
     change: 0.85,
     favourite: false,
     trending: false,
+    sparkProps: {
+      drift: 1.5,
+      volatility: 1.8,
+    },
   },
   {
     id: 5,
@@ -103,8 +130,15 @@ const INITIAL_STOCKS = [
     change: 1.15,
     favourite: true,
     trending: false,
+    sparkProps: {
+      drift: 1.8,
+      volatility: 2.0,
+    },
   },
-].map((s) => ({ ...s, spark: trendSpark(s.change >= 0 ? "up" : "down") }));
+].map((s) => ({
+  ...s,
+  spark: trendSpark(s.change >= 0 ? "up" : "down", 24, s.sparkProps),
+}));
 
 const emptyForm = {
   ticker: "",
@@ -123,14 +157,10 @@ function Sparkline({ data, color, width = 90, height = 36 }) {
           data={data}
           margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
         >
-          <defs>
-            <linearGradient id={`wl-${id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.45} />
-              <stop offset="100%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
+          <YAxis hide domain={["dataMin", "dataMax"]} />
+
           <Area
-            type="monotone"
+            type="linear"
             dataKey="v"
             stroke={color}
             strokeWidth={2}
@@ -303,7 +333,7 @@ export default function Watchlist() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="text-xl font-bold" style={{ color: C.text }}>
+          <div className="text-2xl font-bold" style={{ color: C.text }}>
             Watchlist
           </div>
           <div className="flex gap-4">

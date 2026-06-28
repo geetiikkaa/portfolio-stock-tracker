@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { C } from "../../constants/mockData";
 import { X } from "lucide-react";
 import { Bell } from "lucide-react";
+import ProfileAvatar from "./ProfileAvatar";
 
 export default function TopBar({ searchQuery, setSearchQuery }) {
   return (
@@ -38,15 +39,7 @@ export default function TopBar({ searchQuery, setSearchQuery }) {
         >
           <Bell size={16} color={C.muted} />
         </div>
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-          style={{
-            background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-            color: "#fff",
-          }}
-        >
-          G
-        </div>
+        <ProfileAvatar />
       </div>
     </div>
   );

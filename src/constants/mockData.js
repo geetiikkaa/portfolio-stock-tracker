@@ -37,7 +37,7 @@ export const INITIAL_TRANSACTIONS = [
         unitLabel: "Shares",
         amount: 21250,
         date: "2h ago",
-        status: "Completed",
+        status: "Pending",
     },
     {
         id: 2,
@@ -121,7 +121,7 @@ export const INITIAL_TRANSACTIONS = [
         unitLabel: "Units",
         amount: 12500,
         date: "4d ago",
-        status: "Completed",
+        status: "Pending",
     },
     {
         id: 8,
