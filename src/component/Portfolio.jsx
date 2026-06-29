@@ -11,6 +11,7 @@ import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import StatCard from "./ui/StatCard";
 import { cardStyle } from "../constants/mockData";
+import AddHoldingForm from "./ui/AddHoldingForm";
 
 export const C = {
   purple: "#7c5cff",
@@ -86,7 +87,7 @@ export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState("All Holdings");
   const [holdings, setHoldings] = useState(HOLDINGS);
   const [editingTicker, setEditingTicker] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   /* Summary stats */
   const totalInvestment = holdings.reduce((sum, h) => sum + h.invested, 0);
@@ -104,7 +105,10 @@ export default function PortfolioPage() {
     activeTab === "All Holdings"
       ? holdings
       : []; /* extend with category data as needed */
-
+  const handleAddHolding = (holding) => {
+    setHoldings((prev) => [...prev, holding]);
+    setShowAddForm(false);
+  };
   /* Delete a holding */
   const handleDelete = (ticker) => {
     setHoldings((prev) => prev.filter((h) => h.ticker !== ticker));
@@ -155,18 +159,33 @@ export default function PortfolioPage() {
           </div>
           <div className="flex gap-3 items-center">
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => setShowAddForm((prev) => !prev)}
               className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90 bg-gradient-to-r from-[#5b6cff] to-[#b14ef5]"
               style={{
                 boxShadow: `0 4px 20px ${C.purple}33`,
               }}
             >
-              <Plus size={15} />
-              Add New
+              {showAddForm ? (
+                <>✕ Cancel</>
+              ) : (
+                <>
+                  <Plus size={15} />
+                  Add New
+                </>
+              )}
             </button>
             <ProfileAvatar />
           </div>
         </div>
+        {/* Add New Form */}
+        {showAddForm && (
+          <div className="mb-6">
+            <AddHoldingForm
+              onSubmit={handleAddHolding}
+              onCancel={() => setShowAddForm(false)}
+            />
+          </div>
+        )}
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -483,17 +502,6 @@ export default function PortfolioPage() {
           </>
         )}
       </main>
-
-      {/* Add New Modal */}
-      {showAddModal && (
-        <AddHoldingModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={(newHolding) => {
-            setHoldings((prev) => [...prev, newHolding]);
-            setShowAddModal(false);
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -507,129 +515,129 @@ const COLORS = [
   "#7c3aed",
 ];
 
-function AddHoldingModal({ onClose, onAdd }) {
-  const [form, setForm] = useState({
-    ticker: "",
-    name: "",
-    qty: "",
-    buy: "",
-    current: "",
-    color: COLORS[0],
-  });
+// function AddHoldingModal({ onClose, onAdd }) {
+//   const [form, setForm] = useState({
+//     ticker: "",
+//     name: "",
+//     qty: "",
+//     buy: "",
+//     current: "",
+//     color: COLORS[0],
+//   });
 
-  const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
+//   const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
 
-  const handleSubmit = () => {
-    if (!form.ticker || !form.name || !form.qty || !form.buy || !form.current)
-      return;
-    const qty = parseFloat(form.qty);
-    const buy = parseFloat(form.buy);
-    const current = parseFloat(form.current);
-    const invested = qty * buy;
-    const pl = buy > 0 ? ((current - buy) / buy) * 100 : 0;
-    onAdd({
-      ticker: form.ticker.toUpperCase(),
-      name: form.name,
-      initial: form.ticker[0].toUpperCase(),
-      color: form.color,
-      qty,
-      buy,
-      current,
-      invested,
-      pl,
-    });
-  };
+//   const handleSubmit = () => {
+//     if (!form.ticker || !form.name || !form.qty || !form.buy || !form.current)
+//       return;
+//     const qty = parseFloat(form.qty);
+//     const buy = parseFloat(form.buy);
+//     const current = parseFloat(form.current);
+//     const invested = qty * buy;
+//     const pl = buy > 0 ? ((current - buy) / buy) * 100 : 0;
+//     onAdd({
+//       ticker: form.ticker.toUpperCase(),
+//       name: form.name,
+//       initial: form.ticker[0].toUpperCase(),
+//       color: form.color,
+//       qty,
+//       buy,
+//       current,
+//       invested,
+//       pl,
+//     });
+//   };
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.7)" }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl border p-6 shadow-xl"
-        style={{ background: "#12121e", borderColor: C.border }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-white">Add holding</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-white transition text-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
+//   return (
+//     <div
+//       className="fixed inset-0 z-50 flex items-center justify-center"
+//       style={{ background: "rgba(0,0,0,0.7)" }}
+//       onClick={onClose}
+//     >
+//       <div
+//         className="w-full max-w-sm rounded-2xl border p-6 shadow-xl"
+//         style={{ background: "#12121e", borderColor: C.border }}
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <div className="flex items-center justify-between mb-5">
+//           <h2 className="text-base font-semibold text-white">Add holding</h2>
+//           <button
+//             onClick={onClose}
+//             className="text-gray-500 hover:text-white transition text-lg leading-none"
+//           >
+//             ×
+//           </button>
+//         </div>
 
-        <div className="flex flex-col gap-3">
-          {[
-            {
-              label: "Ticker symbol",
-              field: "ticker",
-              placeholder: "e.g. AAPL",
-            },
-            {
-              label: "Company name",
-              field: "name",
-              placeholder: "e.g. Apple Inc.",
-            },
-            {
-              label: "Quantity",
-              field: "qty",
-              placeholder: "10",
-              type: "number",
-            },
-            {
-              label: "Buy price (₹)",
-              field: "buy",
-              placeholder: "18000",
-              type: "number",
-            },
-            {
-              label: "Current price (₹)",
-              field: "current",
-              placeholder: "21250",
-              type: "number",
-            },
-          ].map(({ label, field, placeholder, type }) => (
-            <div key={field}>
-              <label className="text-xs text-gray-500 mb-1 block">
-                {label}
-              </label>
-              <input
-                type={type || "text"}
-                placeholder={placeholder}
-                value={form[field]}
-                onChange={(e) => set(field, e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm text-white outline-none border transition"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  borderColor: C.border,
-                }}
-              />
-            </div>
-          ))}
-        </div>
+//         <div className="flex flex-col gap-3">
+//           {[
+//             {
+//               label: "Ticker symbol",
+//               field: "ticker",
+//               placeholder: "e.g. AAPL",
+//             },
+//             {
+//               label: "Company name",
+//               field: "name",
+//               placeholder: "e.g. Apple Inc.",
+//             },
+//             {
+//               label: "Quantity",
+//               field: "qty",
+//               placeholder: "10",
+//               type: "number",
+//             },
+//             {
+//               label: "Buy price (₹)",
+//               field: "buy",
+//               placeholder: "18000",
+//               type: "number",
+//             },
+//             {
+//               label: "Current price (₹)",
+//               field: "current",
+//               placeholder: "21250",
+//               type: "number",
+//             },
+//           ].map(({ label, field, placeholder, type }) => (
+//             <div key={field}>
+//               <label className="text-xs text-gray-500 mb-1 block">
+//                 {label}
+//               </label>
+//               <input
+//                 type={type || "text"}
+//                 placeholder={placeholder}
+//                 value={form[field]}
+//                 onChange={(e) => set(field, e.target.value)}
+//                 className="w-full rounded-lg px-3 py-2 text-sm text-white outline-none border transition"
+//                 style={{
+//                   background: "rgba(255,255,255,0.05)",
+//                   borderColor: C.border,
+//                 }}
+//               />
+//             </div>
+//           ))}
+//         </div>
 
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-xl py-2 text-sm text-gray-400 border transition hover:text-white"
-            style={{ borderColor: C.border }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 rounded-xl py-2 text-sm font-semibold text-white transition hover:opacity-90"
-            style={{
-              background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
-            }}
-          >
-            Add holding
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+//         <div className="flex gap-3 mt-6">
+//           <button
+//             onClick={onClose}
+//             className="flex-1 rounded-xl py-2 text-sm text-gray-400 border transition hover:text-white"
+//             style={{ borderColor: C.border }}
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             onClick={handleSubmit}
+//             className="flex-1 rounded-xl py-2 text-sm font-semibold text-white transition hover:opacity-90"
+//             style={{
+//               background: `linear-gradient(135deg, ${C.purple}, ${C.blue})`,
+//             }}
+//           >
+//             Add holding
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
