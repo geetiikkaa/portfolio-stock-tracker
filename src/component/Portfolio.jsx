@@ -505,15 +505,6 @@ export default function PortfolioPage() {
     </div>
   );
 }
-const COLORS = [
-  "#2b2b2b",
-  "#e0651a",
-  "#163b8f",
-  "#1565c0",
-  "#8c1c1c",
-  "#0f766e",
-  "#7c3aed",
-];
 
 // function AddHoldingModal({ onClose, onAdd }) {
 //   const [form, setForm] = useState({

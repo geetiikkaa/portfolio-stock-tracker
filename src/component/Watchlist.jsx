@@ -36,28 +36,20 @@ const cardStyle = {
 const TABS = ["All", "Favourites", "Trending"];
 const AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
 
-const trendSpark = (direction, points = 30) => {
-  const data = [];
+function trendSpark(direction, points = 24) {
+  let value = direction === "up" ? 40 : 60;
 
-  let value = direction === "up" ? 20 : 80;
+  const drift = direction === "up" ? 0.4 : -0.4;
 
-  for (let i = 0; i < points; i++) {
-    // Big movement every point
-    const move = (Math.random() * 8 + 2) * (direction === "up" ? 1 : -1);
+  return Array.from({ length: points }, (_, i) => {
+    value += drift + (Math.random() - 0.5) * 4;
 
-    // Frequent pullback
-    const correction = (Math.random() - 0.5) * 10;
-
-    value += move + correction;
-
-    data.push({
+    return {
       i,
       v: value,
-    });
-  }
-
-  return data;
-};
+    };
+  });
+}
 
 const INITIAL_STOCKS = [
   {

@@ -32,31 +32,65 @@ const cardStyle = {
     "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
 };
 
-const spark = (base, variance) =>
-  Array.from({ length: 10 }, (_, i) => ({
-    i,
-    v: base + Math.sin(i * 1.3) * variance + i * (variance / 4),
-  }));
+const spark = (
+  points = 24,
+  { start = 100, drift = 0.08, volatility = 2 } = {},
+) => {
+  let value = start;
+  let velocity = 0;
+
+  return Array.from({ length: points }, (_, i) => {
+    velocity = velocity * 0.65 + (Math.random() - 0.5) * volatility + drift;
+
+    value += velocity;
+
+    return {
+      i,
+      v: value,
+    };
+  });
+};
 
 const INDEX_CARDS = [
   {
     name: "NIFTY 50",
     value: "22,302.50",
     change: "+1.25%",
-    spark: spark(10, 2.5),
+    spark: spark(24, {
+      start: 100,
+      drift: 0.35,
+      volatility: 4,
+    }),
   },
-  { name: "SENSEX", value: "73,525.45", change: "+1.08%", spark: spark(10, 2) },
+  {
+    name: "SENSEX",
+    value: "73,525.45",
+    change: "+1.08%",
+    spark: spark(24, {
+      start: 95,
+      drift: 0.3,
+      volatility: 4,
+    }),
+  },
   {
     name: "NASDAQ",
     value: "18,567.19",
     change: "+1.35%",
-    spark: spark(10, 2.8),
+    spark: spark(24, {
+      start: 110,
+      drift: 0.5,
+      volatility: 4,
+    }),
   },
   {
     name: "BANK NIFTY",
     value: "48,125.30",
     change: "+1.46%",
-    spark: spark(10, 3),
+    spark: spark(24, {
+      start: 90,
+      drift: 0.45,
+      volatility: 4,
+    }),
   },
 ];
 
@@ -111,7 +145,7 @@ function Sparkline({ data, color, width = 70, height = 28 }) {
             </linearGradient>
           </defs>
           <Area
-            type="monotone"
+            type="linear"
             dataKey="v"
             stroke={color}
             strokeWidth={2}
@@ -128,15 +162,10 @@ function SortIcon({ active, dir }) {
   if (!active) return null;
   return dir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
 }
-
-// Shared sortable Stock/Price/Change table used for both Top Gainers and
-// Top Losers - same columns, just different data + accent color.
 function MoversTable({ title, rows, color, expanded, onToggleExpand }) {
   const [sortKey, setSortKey] = useState(null); // "price" | "change"
   const [sortDir, setSortDir] = useState("desc");
-
   const visibleRows = expanded ? rows : rows.slice(0, 5);
-
   const sorted = useMemo(() => {
     if (!sortKey) return visibleRows;
     return [...visibleRows].sort((a, b) =>
@@ -263,7 +292,6 @@ export default function MarketOverview() {
 
           <div className="relative" ref={profileRef}>
             <ProfileAvatar />
-
             {profileOpen && (
               <div
                 className="absolute right-0 mt-2 py-1.5 rounded-xl z-20"
@@ -320,8 +348,6 @@ export default function MarketOverview() {
             </div>
           ))}
         </div>
-
-        {/* Gainers / Losers / News */}
         <div className="grid grid-cols-3 gap-4">
           <MoversTable
             title="Top Gainers"
@@ -337,7 +363,6 @@ export default function MarketOverview() {
             expanded={losersExpanded}
             onToggleExpand={() => setLosersExpanded((v) => !v)}
           />
-
           <div style={cardStyle} className="p-5 flex flex-col">
             <div
               className="text-sm font-semibold mb-3"
