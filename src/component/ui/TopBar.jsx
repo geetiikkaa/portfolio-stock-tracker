@@ -37,7 +37,6 @@ export default function TopBar({ searchQuery, setSearchQuery }) {
             border: `1px solid ${C.cardBorder}`,
           }}
         >
-          <Bell size={16} color={C.muted} />
         </div>
         <ProfileAvatar />
       </div>

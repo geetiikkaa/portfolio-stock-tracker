@@ -34,15 +34,19 @@ const cardStyle = {
 
 const spark = (
   points = 24,
-  { start = 100, drift = 0.08, volatility = 2 } = {},
+  { start = 100, drift = 0.35, volatility = 3 } = {},
 ) => {
   let value = start;
-  let velocity = 0;
 
   return Array.from({ length: points }, (_, i) => {
-    velocity = velocity * 0.65 + (Math.random() - 0.5) * volatility + drift;
+    let change = drift + (Math.random() - 0.5) * volatility * 2;
 
-    value += velocity;
+    // 20% chance of a sharp move
+    if (Math.random() < 0.2) {
+      change += (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 5);
+    }
+
+    value += change;
 
     return {
       i,
@@ -50,7 +54,6 @@ const spark = (
     };
   });
 };
-
 const INDEX_CARDS = [
   {
     name: "NIFTY 50",
@@ -332,11 +335,16 @@ export default function MarketOverview() {
                 {idx.name}
               </div>
               <div className="flex items-end justify-between mt-2 gap-2">
-                <div className="text-xl font-bold" style={{ color: C.text }}>
+                <div className="text-xl font-bold flex-1 min-w-0" style={{ color: C.text }}>
                   {idx.value}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <Sparkline data={idx.spark} color={C.green} />
+                  <Sparkline
+                    data={idx.spark}
+                    color={C.green}
+                    width={110}
+                    height={42}
+                  />
                   <span
                     className="text-xs font-semibold"
                     style={{ color: C.green }}
