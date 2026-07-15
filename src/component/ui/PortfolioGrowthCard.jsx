@@ -1,5 +1,4 @@
 import Card from "./Card";
-import { COLORS, generateGrowthSeries } from "../../constants/mockData";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -11,7 +10,7 @@ import {
   Line,
 } from "recharts";
 import { useMemo } from "react";
-import { RANGE_DAYS } from "../../constants/mockData";
+import { COLORS, RANGE_DAYS, generateGrowthSeries } from "../../constants/mockDataUnified";
 import { formatTick } from "../../utils/utils";
 import GrowthTooltip from "./GrowthToolTIp";
 

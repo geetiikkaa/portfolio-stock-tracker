@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
 import { Plus, Star, X, ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import Tabs from "./ui/Tabs";
+import ProfileModal from "./ui/ProfileModal";
 
-const C = {
+let C = {
   bgTop: "#0B0F1D",
   bgBottom: "#060810",
   card: "#11162A",
@@ -23,8 +24,7 @@ const C = {
   orange: "#F5A623",
   lavender: "#B49CF5",
 };
-
-const cardStyle = {
+let cardStyle = {
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
   border: `1px solid ${C.cardBorder}`,
@@ -32,14 +32,13 @@ const cardStyle = {
   boxShadow:
     "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
 };
-
-const TABS = ["All", "Favourites", "Trending"];
-const AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
+let TABS = ["All", "Favourites", "Trending"];
+let AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
 
 function trendSpark(direction, points = 24) {
   let value = direction === "up" ? 40 : 60;
 
-  const drift = direction === "up" ? 0.4 : -0.4;
+  let drift = direction === "up" ? 0.4 : -0.4;
 
   return Array.from({ length: points }, (_, i) => {
     value += drift + (Math.random() - 0.5) * 4;
@@ -51,7 +50,7 @@ function trendSpark(direction, points = 24) {
   });
 }
 
-const INITIAL_STOCKS = [
+let INITIAL_STOCKS = [
   {
     id: 1,
     ticker: "AAPL",
@@ -129,10 +128,10 @@ const INITIAL_STOCKS = [
   },
 ].map((s) => ({
   ...s,
-  spark: trendSpark(s.change >= 0 ? "up" : "down", 24, s.sparkProps),
+  spark: trendSpark(s.change >= 0 ? "up" : "down", 24),
 }));
 
-const emptyForm = {
+let emptyForm = {
   ticker: "",
   name: "",
   price: "",
@@ -141,7 +140,7 @@ const emptyForm = {
 };
 
 function Sparkline({ data, color, width = 90, height = 36 }) {
-  const id = React.useId().replace(/:/g, "");
+  let id = React.useId().replace(/:/g, "");
   return (
     <div style={{ width, height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -166,8 +165,8 @@ function Sparkline({ data, color, width = 90, height = 36 }) {
 }
 
 function WatchlistRow({ stock, onToggleFavourite, onRemove }) {
-  const positive = stock.change >= 0;
-  const changeColor = positive ? C.green : C.red;
+  let positive = stock.change >= 0;
+  let changeColor = positive ? C.green : C.red;
 
   return (
     <tr
@@ -239,33 +238,44 @@ function WatchlistRow({ stock, onToggleFavourite, onRemove }) {
   );
 }
 
+let SortIcon = ({ active, sortDirection }) =>
+  active ? (
+    sortDirection === "asc" ? (
+      <ChevronUp size={12} />
+    ) : (
+      <ChevronDown size={12} />
+    )
+  ) : null;
+
 export default function Watchlist() {
-  const [stocks, setStocks] = useState(INITIAL_STOCKS);
-  const [activeTab, setActiveTab] = useState("All");
-  const [sortKey, setSortKey] = useState(null); // "price" | "change"
-  const [sortDir, setSortDir] = useState("desc");
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  let [stocks, setStocks] = useState(INITIAL_STOCKS);
+  let [activeTab, setActiveTab] = useState("All");
+  let [sortKey, setSortKey] = useState(null); // "price" | "change"
+  let [sortDirection, setSortDirection] = useState("desc");
+  let [showForm, setShowForm] = useState(false);
+  let [form, setForm] = useState(emptyForm);
+  let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (activeTab === "Favourites") return stocks.filter((s) => s.favourite);
-    if (activeTab === "Trending") return stocks.filter((s) => s.trending);
-    return stocks;
-  }, [stocks, activeTab]);
+  const filtered = stocks.filter((stock) => {
+    if (activeTab === "Favourites") return stock.favourite;
+    if (activeTab === "Trending") return stock.trending;
+    return true;
+  });
 
-  const sorted = useMemo(() => {
-    if (!sortKey) return filtered;
-    return [...filtered].sort((a, b) =>
-      sortDir === "asc" ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey],
-    );
-  }, [filtered, sortKey, sortDir]);
+  const sorted = !sortKey
+    ? filtered
+    : [...filtered].sort((a, b) =>
+        sortDirection === "asc"
+          ? a[sortKey] - b[sortKey]
+          : b[sortKey] - a[sortKey],
+      );
 
   function handleSort(key) {
     if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("desc");
+      setSortDirection("desc");
     }
   }
 
@@ -283,8 +293,8 @@ export default function Watchlist() {
     e.preventDefault();
     if (!form.ticker.trim() || !form.name.trim() || !form.price) return;
 
-    const change = Number(form.change) || 0;
-    const newStock = {
+    let change = Number(form.change) || 0;
+    let newStock = {
       id: Date.now(),
       ticker: form.ticker.trim().toUpperCase(),
       name: form.name.trim(),
@@ -302,225 +312,234 @@ export default function Watchlist() {
     setShowForm(false);
   }
 
-  const SortIcon = ({ active }) =>
-    active ? (
-      sortDir === "asc" ? (
-        <ChevronUp size={12} />
-      ) : (
-        <ChevronDown size={12} />
-      )
-    ) : null;
-
   return (
-    <div className="flex">
-      <PortfolioSidebar />
-      <div
-        className="w-full min-h-screen p-6 bg-[#0a0a12]"
-        style={{
-          fontFamily:
-            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        }}
-      >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
+    <>
+      <ProfileModal
+        isModalOpen={isProfileModalOpen}
+        onModalClose={() => setIsProfileModalOpen(false)}
+      />
+      <div className="flex">
+        <PortfolioSidebar />
+        <div
+          className="w-full min-h-screen p-6 bg-[#0a0a12]"
+          style={{
+            fontFamily:
+              "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          }}
+        >
+          <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-2xl font-bold" style={{ color: C.text }}>
-            Watchlist
-          </div>
-          <div className="flex gap-4">
-            <button
-              onClick={() => setShowForm((v) => !v)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] text-white"
-            >
-              {showForm ? <X size={15} /> : <Plus size={15} />}
-              {showForm ? "Cancel" : "Add Stock"}
-            </button>
-            <ProfileAvatar />
-          </div>
-        </div>
-
-        {/* Add stock form */}
-        {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            style={cardStyle}
-            className="p-5 mb-5 grid grid-cols-2 sm:grid-cols-5 gap-3 items-end"
-          >
-            <div>
-              <label className="block text-xs mb-1" style={{ color: C.muted }}>
-                Ticker
-              </label>
-              <input
-                value={form.ticker}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, ticker: e.target.value }))
-                }
-                placeholder="MSFT"
-                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{
-                  background: "#1A2036",
-                  border: `1px solid ${C.cardBorder}`,
-                  color: C.text,
-                }}
-              />
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-2xl font-bold" style={{ color: C.text }}>
+              Watchlist
             </div>
-            <div className="col-span-2">
-              <label className="block text-xs mb-1" style={{ color: C.muted }}>
-                Company Name
-              </label>
-              <input
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="Microsoft Corp."
-                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{
-                  background: "#1A2036",
-                  border: `1px solid ${C.cardBorder}`,
-                  color: C.text,
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1" style={{ color: C.muted }}>
-                Price (₹)
-              </label>
-              <input
-                type="number"
-                value={form.price}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, price: e.target.value }))
-                }
-                placeholder="3450"
-                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{
-                  background: "#1A2036",
-                  border: `1px solid ${C.cardBorder}`,
-                  color: C.text,
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1" style={{ color: C.muted }}>
-                Change %
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.change}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, change: e.target.value }))
-                }
-                placeholder="1.50"
-                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{
-                  background: "#1A2036",
-                  border: `1px solid ${C.cardBorder}`,
-                  color: C.text,
-                }}
-              />
-            </div>
-            <label
-              className="flex items-center gap-2 text-sm col-span-2 sm:col-span-2 cursor-pointer select-none"
-              style={{ color: C.muted }}
-            >
-              <input
-                type="checkbox"
-                checked={form.trending}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, trending: e.target.checked }))
-                }
-              />
-              Mark as trending
-            </label>
-            <div className="col-span-2 sm:col-span-3 flex justify-end">
+            <div className="flex gap-4">
               <button
-                type="submit"
-                className="px-5 py-2 rounded-lg text-sm font-semibold"
-                style={{
-                  background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
-                  color: "#fff",
-                }}
+                onClick={() => setShowForm((v) => !v)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] text-white"
               >
-                Save Stock
+                {showForm ? <X size={15} /> : <Plus size={15} />}
+                {showForm ? "Cancel" : "Add Stock"}
               </button>
+              <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
             </div>
-          </form>
-        )}
+          </div>
 
-        {/* Tabs */}
-        <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
-
-        {/* Table */}
-        <div style={cardStyle} className="p-5 mt-8">
-          <table className="w-full">
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${C.cardBorder}` }}>
-                <th
-                  className="text-left pb-3 text-xs font-medium uppercase tracking-wide"
-                  style={{ color: C.muted }}
-                >
-                  Stock
-                </th>
-                <th
-                  onClick={() => handleSort("price")}
-                  className="text-left pb-3 text-xs font-medium uppercase tracking-wide cursor-pointer select-none"
-                  style={{ color: C.muted }}
-                >
-                  <span className="flex items-center gap-1">
-                    Price <SortIcon active={sortKey === "price"} />
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort("change")}
-                  className="text-left pb-3 text-xs font-medium uppercase tracking-wide cursor-pointer select-none"
-                  style={{ color: C.muted }}
-                >
-                  <span className="flex items-center gap-1">
-                    Change <SortIcon active={sortKey === "change"} />
-                  </span>
-                </th>
-                <th
-                  className="text-left pb-3 text-xs font-medium uppercase tracking-wide"
-                  style={{ color: C.muted }}
-                >
-                  Chart
-                </th>
-                <th className="pb-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((stock) => (
-                <WatchlistRow
-                  key={stock.id}
-                  stock={stock}
-                  onToggleFavourite={handleToggleFavourite}
-                  onRemove={handleRemove}
-                />
-              ))}
-            </tbody>
-          </table>
-
-          {sorted.length === 0 && (
-            <div
-              className="py-10 text-center text-sm"
-              style={{ color: C.muted }}
+          {showForm && (
+            <form
+              onSubmit={handleSubmit}
+              style={cardStyle}
+              className="p-5 mb-5 grid grid-cols-2 sm:grid-cols-5 gap-3 items-end"
             >
-              {activeTab === "Favourites"
-                ? "No favourites yet — tap the star on a stock to add it here."
-                : activeTab === "Trending"
-                  ? "Nothing trending right now."
-                  : "Your watchlist is empty. Add a stock to get started."}
-            </div>
+              <div>
+                <label
+                  className="block text-xs mb-1"
+                  style={{ color: C.muted }}
+                >
+                  Ticker
+                </label>
+                <input
+                  value={form.ticker}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, ticker: e.target.value }))
+                  }
+                  placeholder="MSFT"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: "#1A2036",
+                    border: `1px solid ${C.cardBorder}`,
+                    color: C.text,
+                  }}
+                />
+              </div>
+              <div className="col-span-2">
+                <label
+                  className="block text-xs mb-1"
+                  style={{ color: C.muted }}
+                >
+                  Company Name
+                </label>
+                <input
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
+                  placeholder="Microsoft Corp."
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: "#1A2036",
+                    border: `1px solid ${C.cardBorder}`,
+                    color: C.text,
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-xs mb-1"
+                  style={{ color: C.muted }}
+                >
+                  Price (₹)
+                </label>
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, price: e.target.value }))
+                  }
+                  placeholder="3450"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: "#1A2036",
+                    border: `1px solid ${C.cardBorder}`,
+                    color: C.text,
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-xs mb-1"
+                  style={{ color: C.muted }}
+                >
+                  Change %
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.change}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, change: e.target.value }))
+                  }
+                  placeholder="1.50"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: "#1A2036",
+                    border: `1px solid ${C.cardBorder}`,
+                    color: C.text,
+                  }}
+                />
+              </div>
+              <label
+                className="flex items-center gap-2 text-sm col-span-2 sm:col-span-2 cursor-pointer select-none"
+                style={{ color: C.muted }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.trending}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, trending: e.target.checked }))
+                  }
+                />
+                Mark as trending
+              </label>
+              <div className="col-span-2 sm:col-span-3 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg text-sm font-semibold"
+                  style={{
+                    background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
+                    color: "#fff",
+                  }}
+                >
+                  Save Stock
+                </button>
+              </div>
+            </form>
           )}
-        </div>
 
-        <div className="text-xs mt-3" style={{ color: C.mutedSoft }}>
-          Showing {sorted.length} of {stocks.length} stocks
+          <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+
+          <div style={cardStyle} className="p-5 mt-8">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${C.cardBorder}` }}>
+                  <th
+                    className="text-left pb-3 text-xs font-medium uppercase tracking-wide"
+                    style={{ color: C.muted }}
+                  >
+                    Stock
+                  </th>
+                  <th
+                    onClick={() => handleSort("price")}
+                    className="text-left pb-3 text-xs font-medium uppercase tracking-wide cursor-pointer select-none"
+                    style={{ color: C.muted }}
+                  >
+                    <span className="flex items-center gap-1">
+                      Price{" "}
+                      <SortIcon
+                        active={sortKey === "price"}
+                        sortDir={sortDirection}
+                      />
+                    </span>
+                  </th>
+                  <th
+                    onClick={() => handleSort("change")}
+                    className="text-left pb-3 text-xs font-medium uppercase tracking-wide cursor-pointer select-none"
+                    style={{ color: C.muted }}
+                  >
+                    <span className="flex items-center gap-1">
+                      Change <SortIcon active={sortKey === "change"} />
+                    </span>
+                  </th>
+                  <th
+                    className="text-left pb-3 text-xs font-medium uppercase tracking-wide"
+                    style={{ color: C.muted }}
+                  >
+                    Chart
+                  </th>
+                  <th className="pb-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((stock) => (
+                  <WatchlistRow
+                    key={stock.id}
+                    stock={stock}
+                    onToggleFavourite={handleToggleFavourite}
+                    onRemove={handleRemove}
+                  />
+                ))}
+              </tbody>
+            </table>
+
+            {sorted.length === 0 && (
+              <div
+                className="py-10 text-center text-sm"
+                style={{ color: C.muted }}
+              >
+                {activeTab === "Favourites"
+                  ? "No favourites yet. Tap the star on a stock to add it here."
+                  : activeTab === "Trending"
+                    ? "Nothing trending right now."
+                    : "Your watchlist is empty. Add a stock to get started."}
+              </div>
+            )}
+          </div>
+
+          <div className="text-xs mt-3" style={{ color: C.mutedSoft }}>
+            Showing {sorted.length} of {stocks.length} stocks
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

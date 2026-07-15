@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
+import ProfileModal from "./ui/ProfileModal";
 
-const C = {
+let C = {
   bgTop: "#0B0F1D",
   bgBottom: "#060810",
   card: "#11162A",
@@ -23,7 +24,7 @@ const C = {
   lavender: "#B49CF5",
 };
 
-const cardStyle = {
+let cardStyle = {
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
   border: `1px solid ${C.cardBorder}`,
@@ -32,7 +33,7 @@ const cardStyle = {
     "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
 };
 
-const spark = (
+let spark = (
   points = 24,
   { start = 100, drift = 0.35, volatility = 3 } = {},
 ) => {
@@ -41,7 +42,6 @@ const spark = (
   return Array.from({ length: points }, (_, i) => {
     let change = drift + (Math.random() - 0.5) * volatility * 2;
 
-    // 20% chance of a sharp move
     if (Math.random() < 0.2) {
       change += (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 5);
     }
@@ -54,7 +54,7 @@ const spark = (
     };
   });
 };
-const INDEX_CARDS = [
+let INDEX_CARDS = [
   {
     name: "NIFTY 50",
     value: "22,302.50",
@@ -97,7 +97,7 @@ const INDEX_CARDS = [
   },
 ];
 
-const TOP_GAINERS = [
+let TOP_GAINERS = [
   { stock: "NVDA", price: 1195.55, change: 8.24 },
   { stock: "ADANIENT", price: 3245.6, change: 6.35 },
   { stock: "TITAN", price: 3408.5, change: 5.21 },
@@ -110,7 +110,7 @@ const TOP_GAINERS = [
   { stock: "ITC", price: 438.2, change: 2.55 },
 ];
 
-const TOP_LOSERS = [
+let TOP_LOSERS = [
   { stock: "M&M", price: 2615.9, change: -3.25 },
   { stock: "BAJFINANCE", price: 6026.25, change: -2.45 },
   { stock: "NESTLEIND", price: 2150.15, change: -2.1 },
@@ -123,7 +123,7 @@ const TOP_LOSERS = [
   { stock: "ULTRACEMCO", price: 9875.6, change: -0.92 },
 ];
 
-const MARKET_NEWS = [
+let MARKET_NEWS = [
   { title: "RBI keeps repo rate unchanged", time: "2h ago" },
   { title: "Global markets rally ahead of US CPI data", time: "4h ago" },
   { title: "Oil prices rise on supply concerns", time: "6h ago" },
@@ -133,7 +133,7 @@ const MARKET_NEWS = [
 ];
 
 function Sparkline({ data, color, width = 70, height = 28 }) {
-  const id = React.useId().replace(/:/g, "");
+  let id = React.useId().replace(/:/g, "");
   return (
     <div style={{ width, height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -166,15 +166,16 @@ function SortIcon({ active, dir }) {
   return dir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
 }
 function MoversTable({ title, rows, color, expanded, onToggleExpand }) {
-  const [sortKey, setSortKey] = useState(null); // "price" | "change"
-  const [sortDir, setSortDir] = useState("desc");
-  const visibleRows = expanded ? rows : rows.slice(0, 5);
-  const sorted = useMemo(() => {
-    if (!sortKey) return visibleRows;
-    return [...visibleRows].sort((a, b) =>
+  let [sortKey, setSortKey] = useState(null);
+  let [sortDir, setSortDir] = useState("desc");
+  let visibleRows = expanded ? rows : rows.slice(0, 5);
+  let sorted = [...visibleRows];
+
+  if (sortKey) {
+    sorted.sort((a, b) =>
       sortDir === "asc" ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey],
     );
-  }, [visibleRows, sortKey, sortDir]);
+  }
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -256,159 +257,125 @@ function MoversTable({ title, rows, color, expanded, onToggleExpand }) {
 }
 
 export default function MarketOverview() {
-  const [gainersExpanded, setGainersExpanded] = useState(false);
-  const [losersExpanded, setLosersExpanded] = useState(false);
-  const [newsExpanded, setNewsExpanded] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const profileRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const visibleNews = newsExpanded ? MARKET_NEWS : MARKET_NEWS.slice(0, 3);
+  let [gainersExpanded, setGainersExpanded] = useState(false);
+  let [losersExpanded, setLosersExpanded] = useState(false);
+  let [newsExpanded, setNewsExpanded] = useState(false);
+  let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  let visibleNews = newsExpanded ? MARKET_NEWS : MARKET_NEWS.slice(0, 3);
 
   return (
-    <div className="flex">
-      <PortfolioSidebar />
-      <div
-        className="w-full min-h-screen p-6"
-        style={{
-          background: `linear-gradient(180deg, ${C.bgTop} 0%, ${C.bgBottom} 100%)`,
-          fontFamily:
-            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        }}
-      >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
+    <>
+      <ProfileModal
+        isModalOpen={isProfileModalOpen}
+        onModalClose={() => setIsProfileModalOpen(false)}
+      />
+      <div className="flex">
+        <PortfolioSidebar />
+        <div
+          className="w-full min-h-screen p-6"
+          style={{
+            background: `linear-gradient(180deg, ${C.bgTop} 0%, ${C.bgBottom} 100%)`,
+            fontFamily:
+              "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          }}
+        >
+          <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-2xl font-bold" style={{ color: C.text }}>
-            Market Overview
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-2xl font-bold" style={{ color: C.text }}>
+              Market Overview
+            </div>
+
+            <div className="relative">
+              <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
+            </div>
           </div>
 
-          <div className="relative" ref={profileRef}>
-            <ProfileAvatar />
-            {profileOpen && (
-              <div
-                className="absolute right-0 mt-2 py-1.5 rounded-xl z-20"
-                style={{
-                  background: "#161B30",
-                  border: `1px solid ${C.cardBorder}`,
-                  minWidth: 160,
-                  boxShadow: "0 12px 30px -10px rgba(0,0,0,0.6)",
-                }}
-              >
-                {["Profile", "Settings", "Logout"].map((item) => (
+          <div className="grid grid-cols-4 gap-4 mb-5">
+            {INDEX_CARDS.map((idx) => (
+              <div key={idx.name} style={cardStyle} className="p-5">
+                <div className="text-xs" style={{ color: C.muted }}>
+                  {idx.name}
+                </div>
+                <div className="flex items-end justify-between mt-2 gap-2">
                   <div
-                    key={item}
-                    onClick={() => setProfileOpen(false)}
-                    className="px-4 py-2 text-sm cursor-pointer"
-                    style={{ color: C.muted }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.06)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
+                    className="text-xl font-bold flex-1 min-w-0"
+                    style={{ color: C.text }}
                   >
-                    {item}
+                    {idx.value}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Sparkline
+                      data={idx.spark}
+                      color={C.green}
+                      width={110}
+                      height={42}
+                    />
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: C.green }}
+                    >
+                      {idx.change}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <MoversTable
+              title="Top Gainers"
+              rows={TOP_GAINERS}
+              color={C.green}
+              expanded={gainersExpanded}
+              onToggleExpand={() => setGainersExpanded((v) => !v)}
+            />
+            <MoversTable
+              title="Top Losers"
+              rows={TOP_LOSERS}
+              color={C.red}
+              expanded={losersExpanded}
+              onToggleExpand={() => setLosersExpanded((v) => !v)}
+            />
+            <div style={cardStyle} className="p-5 flex flex-col">
+              <div
+                className="text-sm font-semibold mb-3"
+                style={{ color: C.text }}
+              >
+                Market News
+              </div>
+              <div className="flex flex-col gap-3.5 flex-1">
+                {visibleNews.map((n, i) => (
+                  <div
+                    key={n.title}
+                    style={{
+                      borderBottom:
+                        i < visibleNews.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                      paddingBottom: i < visibleNews.length - 1 ? 12 : 0,
+                    }}
+                  >
+                    <div className="text-sm" style={{ color: C.text }}>
+                      {n.title}
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: C.muted }}>
+                      {n.time}
+                    </div>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Index cards */}
-        <div className="grid grid-cols-4 gap-4 mb-5">
-          {INDEX_CARDS.map((idx) => (
-            <div key={idx.name} style={cardStyle} className="p-5">
-              <div className="text-xs" style={{ color: C.muted }}>
-                {idx.name}
-              </div>
-              <div className="flex items-end justify-between mt-2 gap-2">
-                <div className="text-xl font-bold flex-1 min-w-0" style={{ color: C.text }}>
-                  {idx.value}
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Sparkline
-                    data={idx.spark}
-                    color={C.green}
-                    width={110}
-                    height={42}
-                  />
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: C.green }}
-                  >
-                    {idx.change}
-                  </span>
-                </div>
-              </div>
+              <button
+                onClick={() => setNewsExpanded((v) => !v)}
+                className="text-xs font-medium mt-3 text-left"
+                style={{ color: C.purple }}
+              >
+                {newsExpanded ? "Show Less" : "View All News"}
+              </button>
             </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <MoversTable
-            title="Top Gainers"
-            rows={TOP_GAINERS}
-            color={C.green}
-            expanded={gainersExpanded}
-            onToggleExpand={() => setGainersExpanded((v) => !v)}
-          />
-          <MoversTable
-            title="Top Losers"
-            rows={TOP_LOSERS}
-            color={C.red}
-            expanded={losersExpanded}
-            onToggleExpand={() => setLosersExpanded((v) => !v)}
-          />
-          <div style={cardStyle} className="p-5 flex flex-col">
-            <div
-              className="text-sm font-semibold mb-3"
-              style={{ color: C.text }}
-            >
-              Market News
-            </div>
-            <div className="flex flex-col gap-3.5 flex-1">
-              {visibleNews.map((n, i) => (
-                <div
-                  key={n.title}
-                  style={{
-                    borderBottom:
-                      i < visibleNews.length - 1
-                        ? "1px solid rgba(255,255,255,0.04)"
-                        : "none",
-                    paddingBottom: i < visibleNews.length - 1 ? 12 : 0,
-                  }}
-                >
-                  <div className="text-sm" style={{ color: C.text }}>
-                    {n.title}
-                  </div>
-                  <div className="text-xs mt-1" style={{ color: C.muted }}>
-                    {n.time}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => setNewsExpanded((v) => !v)}
-              className="text-xs font-medium mt-3 text-left"
-              style={{ color: C.purple }}
-            >
-              {newsExpanded ? "Show Less" : "View All News"}
-            </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

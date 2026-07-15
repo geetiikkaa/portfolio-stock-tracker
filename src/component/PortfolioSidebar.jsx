@@ -1,5 +1,5 @@
 import { LogOut, Sparkles } from "lucide-react";
-import { NAV_ITEMS } from "../constants/mockData.js";
+import { NAV_ITEMS } from "../constants/mockDataUnified";
 import { useNavigate, useLocation } from "react-router-dom"; // 1. Import useLocation
 
 export default function PortfolioSidebar() {

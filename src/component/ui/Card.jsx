@@ -1,4 +1,4 @@
-import { cardStyle, COLORS } from "../../constants/mockData";
+import { cardStyle, COLORS } from "../../constants/mockDataUnified";
 
 export default function Card({ className = "", children }) {
   return (

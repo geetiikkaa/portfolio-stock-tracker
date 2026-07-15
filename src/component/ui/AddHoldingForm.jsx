@@ -31,9 +31,8 @@ const emptyForm = {
   current: "",
 };
 
-export default function AddHoldingForm() {
+export default function AddHoldingForm({ onSubmit, onCancel }) {
   const [form, setForm] = useState(emptyForm);
-  const [holdings, setHoldings] = useState([]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -49,28 +48,20 @@ export default function AddHoldingForm() {
 
     const qty = Number(form.qty);
     const buy = Number(form.buy);
-    const current = Number(form.current);
 
-    const invested = qty * buy;
-    const pl = buy > 0 ? ((current - buy) / buy) * 100 : 0;
-
-    const newHolding = {
-      id: Date.now(),
+    onSubmit({
       ticker: form.ticker.trim().toUpperCase(),
       name: form.name.trim(),
       initial: form.ticker.trim()[0].toUpperCase(),
-      color: AVATAR_COLORS[holdings.length % AVATAR_COLORS.length],
+      color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
       qty,
-      buy,
-      current,
-      invested,
-      pl,
-    };
-
-    console.log(newHolding); // Replace with your own add logic
-
-    setHoldings((prev) => [newHolding, ...prev]);
+      amount: qty * buy,
+      assetClass: "Equity",
+      unitLabel: "Shares",
+      date: new Date().toISOString(),
+    });
     setForm(emptyForm);
+    onCancel?.();
   }
 
   return (
@@ -79,7 +70,6 @@ export default function AddHoldingForm() {
       style={cardStyle}
       className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end"
     >
-      {/* Ticker */}
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
           Ticker Symbol
@@ -96,8 +86,6 @@ export default function AddHoldingForm() {
           }}
         />
       </div>
-
-      {/* Company Name */}
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
           Company Name
@@ -114,8 +102,6 @@ export default function AddHoldingForm() {
           }}
         />
       </div>
-
-      {/* Quantity */}
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
           Quantity
@@ -133,8 +119,6 @@ export default function AddHoldingForm() {
           }}
         />
       </div>
-
-      {/* Buy Price */}
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
           Buy Price (₹)
@@ -152,8 +136,6 @@ export default function AddHoldingForm() {
           }}
         />
       </div>
-
-      {/* Current Price */}
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
           Current Price (₹)
@@ -171,10 +153,7 @@ export default function AddHoldingForm() {
           }}
         />
       </div>
-
-      {/* Submit Button */}
       <div className="lg:col-span-3 flex justify-end gap-3">
-
         <button
           type="submit"
           className="px-5 py-2 rounded-lg text-sm font-semibold"

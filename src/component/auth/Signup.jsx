@@ -12,7 +12,7 @@ export default function Signup() {
     name: "",
     email: "",
     password: "",
-    confirm: "",
+    confirmPassword: "",
   });
   const update = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -20,10 +20,10 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await axios.post("http://localhost:8000/api/signup", {
-      fullName: form.name,
+      name: form.name,
       email: form.email,
       password: form.password,
-      confirmPassword: form.confirm,
+      confirmPassword: form.confirmPassword,
     });
     console.log(res.data);
     localStorage.setItem("token", res.data.token);
@@ -108,8 +108,8 @@ export default function Signup() {
             <div className="relative">
               <input
                 type={showConfirm ? "text" : "password"}
-                value={form.confirm}
-                onChange={update("confirm")}
+                value={form.confirmPassword}
+                onChange={update("confirmPassword")}
                 placeholder="Confirm your password"
                 className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3.5 py-2.5 pr-10 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60 focus:ring-1 focus:ring-[#7c5cff]/40"
               />

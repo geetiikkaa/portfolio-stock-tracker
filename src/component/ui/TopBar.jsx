@@ -1,10 +1,13 @@
 import { Search } from "lucide-react";
-import { C } from "../../constants/mockData";
+import { C } from "../../constants/mockDataUnified";
 import { X } from "lucide-react";
-import { Bell } from "lucide-react";
 import ProfileAvatar from "./ProfileAvatar";
+import { useState } from "react";
+import ProfileModal from "./ProfileModal";
 
 export default function TopBar({ searchQuery, setSearchQuery }) {
+  let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
   return (
     <div className="flex items-center justify-between gap-4 mb-6">
       <div
@@ -30,16 +33,12 @@ export default function TopBar({ searchQuery, setSearchQuery }) {
         )}
       </div>
       <div className="flex items-center gap-3">
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center"
-          style={{
-            background: C.card,
-            border: `1px solid ${C.cardBorder}`,
-          }}
-        >
-        </div>
-        <ProfileAvatar />
+        <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
       </div>
+      <ProfileModal
+        isModalOpen={isProfileModalOpen}
+        onModalClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }

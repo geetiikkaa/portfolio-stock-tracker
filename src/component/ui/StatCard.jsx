@@ -1,7 +1,5 @@
-import { cardStyle } from "../../constants/mockData";
 import Sparkline from "./Sparkline";
-import { ArrowUpRight } from "lucide-react";
-import { C } from "../../constants/mockData";
+import { C, cardStyle } from "../../constants/mockDataUnified";
 
 export default function StatCard({
   label,
@@ -31,7 +29,6 @@ export default function StatCard({
           className="flex items-center gap-1 mt-3 text-sm font-medium"
           style={{ color: subColor }}
         >
-          <ArrowUpRight size={15} strokeWidth={2.5} />
           {sub}
         </div>
       )}

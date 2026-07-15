@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -10,7 +10,14 @@ import {
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
 import { useNavigate } from "react-router-dom";
-import { RANGE_DATA, C, cardStyle, transactions } from "../constants/mockData";
+import {
+  RANGE_DATA,
+  C,
+  cardStyle,
+  INITIAL_TRANSACTIONS,
+  INITIAL_PROFILE,
+} from "../constants/mockDataUnified";
+import { formatINR } from "../utils/utils";
 import Dot from "./ui/Dot";
 import Sparkline from "./ui/Sparkline";
 import StatCard from "./ui/StatCard";
@@ -20,58 +27,60 @@ import CustomTooltip from "./ui/CustomToolTip";
 import TimeRangeDropdown from "./ui/TimeRangeDropdown";
 import AssetAllocationChart from "./ui/AssetAllocationChart";
 
-const spark = (base, variance) =>
+let spark = (base, variance) =>
   Array.from({ length: 10 }, (_, i) => ({
     i,
     v: base + Math.sin(i * 1.3) * variance + i * (variance / 4),
   }));
 
-const sparkPortfolio = spark(10, 3);
-const sparkProfit = spark(8, 4);
-const sparkNifty = spark(10, 2.5);
-const sparkSensex = spark(10, 2);
-const sparkNasdaq = spark(10, 2.8);
-
-const indices = [
+let sparkPortfolio = spark(10, 3);
+let sparkProfit = spark(8, 4);
+let sparkNifty = spark(10, 2.5);
+let sparkSensex = spark(10, 2);
+let sparkNasdaq = spark(10, 2.8);
+let indices = [
   { name: "NIFTY 50", value: "22,302.50", change: "+1.25%", spark: sparkNifty },
   { name: "SENSEX", value: "73,525.45", change: "+1.08%", spark: sparkSensex },
   { name: "NASDAQ", value: "18,567.19", change: "+1.35%", spark: sparkNasdaq },
 ];
 
+function ViewAll({ to }) {
+  let navigate = useNavigate();
+
+  return (
+    <div
+      className="text-xs font-medium cursor-pointer"
+      style={{ color: C.purple }}
+      onClick={() => navigate(to)}
+    >
+      View All
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  const navigate = useNavigate();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRange, setSelectedRange] = useState("This Year");
-  const [isRangeOpen, setIsRangeOpen] = useState(false);
-  const rangeRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (rangeRef.current && !rangeRef.current.contains(e.target)) {
-        setIsRangeOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const query = searchQuery.trim().toLowerCase();
-
-  const filteredTransactions = query
-    ? transactions.filter(
+  let [searchQuery, setSearchQuery] = useState("");
+  let [selectedRange, setSelectedRange] = useState("This Year");
+  let query = searchQuery.trim().toLowerCase();
+  let recentTransactions = INITIAL_TRANSACTIONS.slice(0, 5).map((tx) => ({
+    symbol: tx.ticker,
+    name: tx.name,
+    action: tx.qty != null ? `${tx.type} ${tx.qty} ${tx.unitLabel}` : tx.type,
+    amount: formatINR(tx.amount),
+    time: tx.date,
+    color: tx.color,
+  }));
+  let filteredTransactions = query
+    ? recentTransactions.filter(
         (t) =>
           t.symbol.toLowerCase().includes(query) ||
           t.name.toLowerCase().includes(query),
       )
-    : transactions;
-
-  const filteredIndices = query
-    ? indices.filter((idx) => idx.name.toLowerCase().includes(query))
+    : recentTransactions;
+  let filteredIndices = query
+    ? indices.filter((index) => index.name.toLowerCase().includes(query))
     : indices;
-
-  const selectedData = RANGE_DATA[selectedRange].data;
-  const changeLabel = RANGE_DATA[selectedRange].changeLabel;
+  let selectedRangeData = RANGE_DATA[selectedRange];
 
   return (
     <div className="flex">
@@ -88,34 +97,26 @@ export default function Dashboard() {
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
           .dashboard-search::placeholder { color: ${C.mutedSoft}; }
         `}</style>
-
-        {/* Top bar */}
         <TopBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-
-        {/* Greeting */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="text-xl font-bold" style={{ color: C.text }}>
-              Good Morning, Geetika 👋
+              Good Morning, {INITIAL_PROFILE.name} 👋
             </div>
             <div className="text-sm mt-1" style={{ color: C.muted }}>
               Here's what's happening with your portfolio today.
             </div>
           </div>
-
-          {/* Time-range dropdown */}
           <TimeRangeDropdown
             selectedRange={selectedRange}
             setSelectedRange={setSelectedRange}
           />
         </div>
-
-        {/* Stat cards */}
         <div className="grid grid-cols-4 gap-4 mb-5">
           <StatCard
             label="Total Portfolio Value"
             value="₹24,75,430"
-            sub={changeLabel}
+            sub={selectedRangeData.changeLabel}
             subColor={C.green}
             spark={sparkPortfolio}
             sparkColor={C.green}
@@ -153,8 +154,6 @@ export default function Dashboard() {
             <HealthGauge score={85} />
           </div>
         </div>
-
-        {/* Middle row */}
         <div className="grid grid-cols-3 gap-4 mb-5">
           <div style={cardStyle} className="p-5 col-span-2">
             <div className="flex items-center justify-between mb-2">
@@ -168,7 +167,7 @@ export default function Dashboard() {
             <div style={{ height: 230 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={selectedData}
+                  data={selectedRangeData.data}
                   margin={{ top: 20, right: 10, left: -10, bottom: 0 }}
                 >
                   <defs>
@@ -211,7 +210,7 @@ export default function Dashboard() {
                     strokeWidth={2.5}
                     fill="url(#perfFill)"
                     dot={(props) => (
-                      <Dot {...props} total={selectedData.length} />
+                      <Dot {...props} total={selectedRangeData.data.length} />
                     )}
                     activeDot={{
                       r: 6,
@@ -224,24 +223,15 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           </div>
-
           <AssetAllocationChart />
         </div>
-
-        {/* Bottom row */}
         <div className="grid grid-cols-3 gap-4">
           <div style={cardStyle} className="p-5 col-span-2">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold" style={{ color: C.text }}>
                 Recent Transactions
               </div>
-              <div
-                className="text-xs font-medium cursor-pointer"
-                style={{ color: C.purple }}
-                onClick={() => navigate("/transactions")}
-              >
-                View All
-              </div>
+              <ViewAll to="/transactions" />
             </div>
             <div className="flex flex-col gap-4">
               {filteredTransactions.length === 0 ? (
@@ -298,23 +288,15 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-
           <div style={cardStyle} className="p-5">
             <div className="flex items-center justify-between mb-3">
-              {" "}
               <div
                 className="text-sm font-semibold mb-3"
                 style={{ color: C.text }}
               >
                 Market Snapshot
               </div>
-              <div
-                className="text-xs font-medium cursor-pointer"
-                style={{ color: C.purple }}
-                onClick={() => navigate("/market-overview")}
-              >
-                View All
-              </div>
+              <ViewAll to="/market-overview" />
             </div>
             <div className="flex flex-col gap-4">
               {filteredIndices.length === 0 ? (
@@ -325,9 +307,9 @@ export default function Dashboard() {
                   No indices match "{searchQuery}".
                 </div>
               ) : (
-                filteredIndices.map((idx) => (
+                filteredIndices.map((index) => (
                   <div
-                    key={idx.name}
+                    key={index.name}
                     className="flex items-center justify-between"
                   >
                     <div>
@@ -335,18 +317,18 @@ export default function Dashboard() {
                         className="text-sm font-medium"
                         style={{ color: C.text }}
                       >
-                        {idx.name}
+                        {index.name}
                       </div>
                       <div
                         className="text-xs mt-0.5"
                         style={{ color: C.muted }}
                       >
-                        {idx.value}
+                        {index.value}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Sparkline
-                        data={idx.spark}
+                        data={index.spark}
                         color={C.green}
                         width={60}
                         height={28}
@@ -355,7 +337,7 @@ export default function Dashboard() {
                         className="text-xs font-semibold"
                         style={{ color: C.green }}
                       >
-                        {idx.change}
+                        {index.change}
                       </span>
                     </div>
                   </div>

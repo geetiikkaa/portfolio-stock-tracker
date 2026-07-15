@@ -9,21 +9,24 @@ import Transactions from "./component/Transactions";
 import Analytics from "./component/Analytics";
 import Watchlist from "./component/Watchlist";
 import MarketOverview from "./component/MarketOverview";
+import RequireAuth from "./component/auth/RequireAuth";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/" element={<Login />} />
           <Route path="/registration" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/portfolioSidebar" element={<PortfolioSidebar />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/watchlist" element={<Watchlist />} />
-          <Route path="market-overview" element={<MarketOverview />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/portfolioSidebar" element={<PortfolioSidebar />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="market-overview" element={<MarketOverview />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </>

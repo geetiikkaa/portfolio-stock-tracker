@@ -1,4 +1,4 @@
-import { C } from "../../constants/mockData";
+import { C } from "../../constants/mockDataUnified";
 import { Star } from "lucide-react";
 
 export default function HealthGauge({ score = 85 }) {
