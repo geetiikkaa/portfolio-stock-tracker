@@ -9,57 +9,50 @@ import {
   Area,
   Line,
 } from "recharts";
-import { useMemo } from "react";
-import { COLORS, RANGE_DAYS, generateGrowthSeries } from "../../constants/mockDataUnified";
+import { useMemo, memo } from "react";
+import {
+  COLORS,
+  RANGE_DAYS,
+  generateGrowthSeries,
+} from "../../constants/mockDataUnified";
 import { formatTick } from "../../utils/utils";
 import GrowthTooltip from "./GrowthToolTIp";
+import SeriesToggle from "./SeriesToggle";
+import ChartGradient from "./ChartGradient";
 
-export default function PortfolioGrowthCard({
-  range,
-  visibleSeries,
-  toggleSeries,
-}) {
-  const fullSeries = useMemo(() => generateGrowthSeries(RANGE_DAYS.All), []);
-  const growthData = useMemo(() => {
-    const days = RANGE_DAYS[range];
-    return fullSeries.slice(-days).map((d) => ({
-      ...d,
-      label: formatTick(d.date, range),
+function PortfolioGrowthCard({ range, visibleSeries, toggleSeries }) {
+  let fullSeries = useMemo(() => generateGrowthSeries(RANGE_DAYS.All), []);
+  let growthData = useMemo(() => {
+    let days = RANGE_DAYS[range];
+    return fullSeries.slice(-days).map((dataPoint) => ({
+      ...dataPoint,
+      label: formatTick(dataPoint.date, range),
     }));
   }, [fullSeries, range]);
-  const tickInterval = Math.max(0, Math.ceil(growthData.length / 7) - 1);
+  let tickInterval = Math.max(0, Math.ceil(growthData.length / 7) - 1);
   return (
-    <Card className={"lg:col-span-2 h-[320px]"}>
+    <Card className="lg:col-span-2 h-[320px]">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[15px] font-semibold text-white">
           Portfolio Growth
         </h2>
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => toggleSeries("portfolio")}
-            className="flex items-center gap-1.5 text-xs font-medium transition-opacity"
-            style={{ opacity: visibleSeries.portfolio ? 1 : 0.4 }}
-          >
-            <span
-              className="h-[3px] w-4 rounded-full"
-              style={{ background: COLORS.purple }}
-            />
-            <span className="text-slate-300">Your Portfolio</span>
-          </button>
-          <button
-            onClick={() => toggleSeries("nifty")}
-            className="flex items-center gap-1.5 text-xs font-medium transition-opacity"
-            style={{ opacity: visibleSeries.nifty ? 1 : 0.4 }}
-          >
-            <span
-              className="h-[3px] w-4 rounded-full"
-              style={{ background: COLORS.green }}
-            />
-            <span className="text-slate-300">NIFTY 50</span>
-          </button>
+          <SeriesToggle
+            name="portfolio"
+            toggleSeries={toggleSeries}
+            color={COLORS.purple}
+            label="Your Portfolio"
+            isVisible={visibleSeries.portfolio}
+          />
+          <SeriesToggle
+            name="nifty"
+            toggleSeries={toggleSeries}
+            color={COLORS.green}
+            label="NIFTY 50"
+            isVisible={visibleSeries.nifty}
+          />
         </div>
       </div>
-
       <div className="h-63 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
@@ -67,18 +60,16 @@ export default function PortfolioGrowthCard({
             margin={{ top: 5, right: 8, left: -16, bottom: 0 }}
           >
             <defs>
-              <linearGradient id="portfolioFill" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={COLORS.purple}
-                  stopOpacity={0.25}
-                />
-                <stop offset="95%" stopColor={COLORS.purple} stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="niftyFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={COLORS.green} stopOpacity={0.18} />
-                <stop offset="95%" stopColor={COLORS.green} stopOpacity={0} />
-              </linearGradient>
+              <ChartGradient
+                id="portfolioFill"
+                color={COLORS.purple}
+                opacity={0.25}
+              />
+              <ChartGradient
+                id="niftyFill"
+                color={COLORS.green}
+                opacity={0.18}
+              />
             </defs>
             <CartesianGrid
               stroke={COLORS.grid}
@@ -155,3 +146,5 @@ export default function PortfolioGrowthCard({
     </Card>
   );
 }
+
+export default memo(PortfolioGrowthCard);

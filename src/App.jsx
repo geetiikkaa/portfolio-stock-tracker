@@ -10,8 +10,35 @@ import Analytics from "./component/Analytics";
 import Watchlist from "./component/Watchlist";
 import MarketOverview from "./component/MarketOverview";
 import RequireAuth from "./component/auth/RequireAuth";
+import { useEffect } from "react";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setUser } from "./features/auth/authSlice";
 
 function App() {
+  let dispatch = useDispatch();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    let fetchProfile = async () => {
+      try {
+        let res = await axios.get("http://localhost:8000/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        dispatch(setUser(res.data));
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+    fetchProfile();
+  }, [dispatch]);
+
   return (
     <>
       <BrowserRouter>

@@ -1,70 +1,73 @@
-import { useState } from "react";
-import { Plus, Search, Trash2, X, CheckCircle2, Clock3 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus, Search, X } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import {
-  TYPE_STYLES,
   TYPE_FILTERS,
   ASSET_TABS,
   emptyForm,
   cardStyle,
   INITIAL_TRANSACTIONS,
 } from "../constants/mockDataUnified";
-import { formatINR } from "../utils/utils";
 import Tabs from "./ui/Tabs";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import Dropdown from "./ui/Dropdown";
 import ProfileModal from "./ui/ProfileModal";
+import SummaryCard from "./ui/SummaryCard";
+import TransactionRow from "./ui/TransactionRow";
 
 function filterTransactions(transactions, activeTab, typeFilter, search) {
-  const q = search.trim().toLowerCase();
+  let q = search.trim().toLowerCase();
 
   return transactions.filter(
-    (t) =>
-      (activeTab === "All" || t.assetClass === activeTab) &&
-      (typeFilter === "All" || t.type === typeFilter) &&
+    (transaction) =>
+      (activeTab === "All" || transaction.assetClass === activeTab) &&
+      (typeFilter === "All" || transaction.type === typeFilter) &&
       (q === "" ||
-        t.name.toLowerCase().includes(q) ||
-        t.ticker.toLowerCase().includes(q)),
+        transaction.name.toLowerCase().includes(q) ||
+        transaction.ticker.toLowerCase().includes(q)),
   );
 }
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
-  const [activeTab, setActiveTab] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  let [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  let [activeTab, setActiveTab] = useState("All");
+  let [typeFilter, setTypeFilter] = useState("All");
+  let [search, setSearch] = useState("");
+  let [showForm, setShowForm] = useState(false);
+  let [form, setForm] = useState(emptyForm);
+  let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const filtered = filterTransactions(
-    transactions,
-    activeTab,
-    typeFilter,
-    search,
+  let filtered = useMemo(
+    () => filterTransactions(transactions, activeTab, typeFilter, search),
+    [transactions, activeTab, typeFilter, search],
   );
-  let bought = 0;
-  let sold = 0;
 
-  for (let t of transactions) {
-    if (t.type === "Buy" || t.type === "Deposit") {
-      bought += t.amount;
-    } else if (t.type === "Sell" || t.type === "Withdrawal") {
-      sold += t.amount;
+  let totals = useMemo(() => {
+    let bought = 0;
+    let sold = 0;
+
+    for (let transaction of transactions) {
+      if (transaction.type === "Buy" || transaction.type === "Deposit")
+        bought += transaction.amount;
+      else if (transaction.type === "Sell" || transaction.type === "Withdrawal")
+        sold += transaction.amount;
     }
-  }
-  const totals = {
-    bought,
-    sold,
-    net: bought - sold,
+
+    return {
+      bought,
+      sold,
+      net: bought - sold,
+    };
+  }, [transactions]);
+  let handleDelete = (id) => {
+    setTransactions((prev) =>
+      prev.filter((transaction) => transaction.id !== id),
+    );
   };
-  const handleDelete = (id) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
-  const handleSubmit = (e) => {
+  let handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.amount) return;
-    const newTxn = {
+    let newTxn = {
       id: Date.now(),
       ticker:
         form.ticker.trim().toUpperCase() || form.name.slice(0, 4).toUpperCase(),
@@ -89,6 +92,11 @@ export default function Transactions() {
     setForm(emptyForm);
     setShowForm(false);
   };
+  let handleChange = (key) => (e) =>
+    setForm((prev) => ({
+      ...prev,
+      [key]: e.target.value,
+    }));
 
   return (
     <>
@@ -127,9 +135,7 @@ export default function Transactions() {
                 </label>
                 <input
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
+                  onChange={handleChange("name")}
                   placeholder="e.g. Wipro Ltd."
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
                 />
@@ -140,9 +146,7 @@ export default function Transactions() {
                 </label>
                 <input
                   value={form.ticker}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, ticker: e.target.value }))
-                  }
+                  onChange={handleChange("ticker")}
                   placeholder="WIPRO"
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
                 />
@@ -153,9 +157,7 @@ export default function Transactions() {
                 </label>
                 <select
                   value={form.assetClass}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, assetClass: e.target.value }))
-                  }
+                  onChange={handleChange("assetClass")}
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white outline-none focus:border-[#7c5cff]/60"
                 >
                   {ASSET_TABS.filter((t) => t !== "All").map((t) => (
@@ -169,14 +171,14 @@ export default function Transactions() {
                 <label className="block text-xs text-gray-400 mb-1">Type</label>
                 <select
                   value={form.type}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, type: e.target.value }))
-                  }
+                  onChange={handleChange("type")}
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white outline-none focus:border-[#7c5cff]/60"
                 >
-                  {TYPE_FILTERS.filter((t) => t !== "All").map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {TYPE_FILTERS.filter(
+                    (transaction) => transaction !== "All",
+                  ).map((transaction) => (
+                    <option key={transaction} value={transaction}>
+                      {transaction}
                     </option>
                   ))}
                 </select>
@@ -189,9 +191,7 @@ export default function Transactions() {
                   type="number"
                   step="any"
                   value={form.qty}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, qty: e.target.value }))
-                  }
+                  onChange={handleChange("qty")}
                   placeholder="Optional"
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
                 />
@@ -203,9 +203,7 @@ export default function Transactions() {
                 <input
                   type="number"
                   value={form.amount}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, amount: e.target.value }))
-                  }
+                  onChange={handleChange("amount")}
                   placeholder="10000"
                   required
                   className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
@@ -223,42 +221,7 @@ export default function Transactions() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div
-              className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
-              style={cardStyle}
-            >
-              <div className="text-xs text-gray-500 mb-1">
-                Total Bought / Deposited
-              </div>
-              <div className="text-xl font-semibold text-emerald-400">
-                {formatINR(totals.bought)}
-              </div>
-            </div>
-            <div
-              className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
-              style={cardStyle}
-            >
-              <div className="text-xs text-gray-500 mb-1">
-                Total Sold / Withdrawn
-              </div>
-              <div className="text-xl font-semibold text-rose-400">
-                {formatINR(totals.sold)}
-              </div>
-            </div>
-            <div
-              className="rounded-2xl border border-white/10 bg-[#12121d] px-6 py-4"
-              style={cardStyle}
-            >
-              <div className="text-xs text-gray-500 mb-1">Net Flow</div>
-              <div
-                className={`text-xl font-semibold ${
-                  totals.net >= 0 ? "text-emerald-400" : "text-rose-400"
-                }`}
-              >
-                {totals.net >= 0 ? "+" : "-"}
-                {formatINR(Math.abs(totals.net))}
-              </div>
-            </div>
+            <SummaryCard totals={totals} />
           </div>
 
           <div className="flex items-center justify-between flex-wrap gap-4 mb-5">
@@ -316,74 +279,10 @@ export default function Transactions() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((t) => {
-                    const typeStyle = TYPE_STYLES[t.type];
-                    const TypeIcon = typeStyle.icon;
-                    return (
-                      <tr
-                        key={t.id}
-                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition"
-                      >
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                              style={{ backgroundColor: t.color }}
-                            >
-                              {t.initial}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-white">
-                                {t.ticker} - {t.name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {t.assetClass}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${typeStyle.bg} ${typeStyle.color}`}
-                          >
-                            <TypeIcon size={12} />
-                            {t.type}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-gray-300">
-                          {t.qty ? `${t.qty} ${t.unitLabel}` : "—"}
-                        </td>
-                        <td className="px-5 py-4 font-medium text-white">
-                          {formatINR(t.amount)}
-                        </td>
-                        <td className="px-5 py-4 text-gray-400">{t.date}</td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 text-xs font-medium ${
-                              t.status === "Completed"
-                                ? "text-emerald-400"
-                                : "text-amber-400"
-                            }`}
-                          >
-                            {t.status === "Completed" ? (
-                              <CheckCircle2 size={13} />
-                            ) : (
-                              <Clock3 size={13} />
-                            )}
-                            {t.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <button
-                            onClick={() => handleDelete(t.id)}
-                            className="h-7 w-7 flex items-center justify-center rounded-md bg-white/5 text-gray-400 hover:text-red-400 hover:bg-white/10 transition"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                  <TransactionRow
+                    filtered={filtered}
+                    handleDelete={handleDelete}
+                  />
                 )}
               </tbody>
             </table>

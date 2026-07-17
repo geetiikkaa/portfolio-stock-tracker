@@ -1,27 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Star, Camera, Check, Pencil } from "lucide-react";
-import { INITIAL_PROFILE } from "../../constants/mockDataUnified";
+import { INITIAL_PROFILE, C } from "../../constants/mockDataUnified";
+import { useSelector } from "react-redux";
+import { setUser } from "../../features/auth/authSlice";
+import { useDispatch } from "react-redux";
+import axios from "axios";
 
-const C = {
-  bgTop: "#0B0F1D",
-  bgBottom: "#060810",
-  card: "#11162A",
-  cardBorder: "rgba(255,255,255,0.06)",
-  cardBorderFocus: "rgba(140,124,246,0.5)",
-  text: "#F3F5FB",
-  muted: "#8A91A8",
-  mutedSoft: "#6B7286",
-  green: "#34D6A0",
-  greenSoft: "rgba(52,214,160,0.14)",
-  purple: "#8C7CF6",
-  purpleSoft: "rgba(140,124,246,0.12)",
-  red: "#F0716B",
-  blue: "#5B72F0",
-  orange: "#F5A623",
-  orangeSoft: "rgba(245,166,35,0.14)",
-};
-
-function FieldRow({ label, value, isEditing, inputType = "text", onChange }) {
+let FieldRow = React.memo(function FieldRow({
+  label,
+  value,
+  isEditing,
+  inputType = "text",
+  onChange,
+}) {
   return (
     <div>
       <div className="text-xs mb-1" style={{ color: C.muted }}>
@@ -46,32 +37,42 @@ function FieldRow({ label, value, isEditing, inputType = "text", onChange }) {
       )}
     </div>
   );
-}
+});
 
 export default function ProfileModal({ isModalOpen, onModalClose }) {
+  let user = useSelector((state) => state.auth.user);
+  let dispatch = useDispatch();
   let [profile, setProfile] = useState(INITIAL_PROFILE);
-  const [draft, setDraft] = useState(profile);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const backdropRef = useRef(null);
-  const fileRef = useRef(null);
+  let [draft, setDraft] = useState(profile);
+  let [isEditing, setIsEditing] = useState(false);
+  let [showSuccess, setShowSuccess] = useState(false);
+  let backdropRef = useRef(null);
+  let fileRef = useRef(null);
 
   useEffect(() => {
-    if (isModalOpen) {
-      setDraft(profile);
+    if (isModalOpen && user) {
+      setDraft({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        location: user.location || "",
+        avatar: user.avatar || "",
+      });
+
       setIsEditing(false);
     }
-  }, [isModalOpen, profile]);
+  }, [isModalOpen, user]);
 
   useEffect(() => {
-    if (isModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
+    document.body.style.overflow = isModalOpen ? "hidden" : "";
+
+    return () => {
       document.body.style.overflow = "";
-    }
+    };
   }, [isModalOpen]);
 
   if (!isModalOpen) return null;
+  if (!profile) return null;
 
   function handleBackdropClick(e) {
     if (e.target === backdropRef.current) {
@@ -81,33 +82,58 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
   }
 
   function handleStartEdit() {
-    setDraft({ ...profile });
+    setDraft({
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      location: user.location || "",
+      avatar: user.avatar || "",
+    });
+
     setIsEditing(true);
   }
 
   function handleCancel() {
-    setDraft({ ...profile });
+    setDraft(profile);
     setIsEditing(false);
   }
 
-  function handleSave() {
-    setProfile({ ...draft });
-    setIsEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    try {
+      const response = await axios.put(
+        "http://localhost:8000/api/auth/update",
+        draft,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      dispatch(setUser(response.data.user));
+
+      setIsEditing(false);
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   function handleAvatarChange(e) {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
+    let reader = new FileReader();
     reader.onload = (ev) => {
       setDraft((d) => ({ ...d, avatar: ev.target.result }));
     };
     reader.readAsDataURL(file);
   }
 
-  const avatarSrc = isEditing ? draft.avatar : profile.avatar;
+  let avatarSrc = isEditing ? draft.avatar : profile.avatar;
 
   return (
     <div
@@ -136,17 +162,11 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
             handleCancel();
             onModalClose();
           }}
-          className="absolute top-4 right-4 flex items-center justify-center w-7 h-7 rounded-full transition"
+          className="absolute top-4 right-4 flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 transition"
           style={{
             background: "rgba(255,255,255,0.07)",
             color: C.muted,
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.12)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.07)")
-          }
           aria-label="Close"
         >
           <X size={14} />
@@ -170,7 +190,7 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
                 />
               ) : (
                 <span>
-                  {(isEditing ? draft.name : profile.name).slice(0, 1)}
+                  {isEditing ? draft.name.charAt(0) : user.name.charAt(0)}
                 </span>
               )}
             </div>
@@ -216,7 +236,7 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
                 className="text-base font-bold mb-2"
                 style={{ color: C.text }}
               >
-                {profile.name}
+                {user.name}
               </div>
             )}
             <div
@@ -234,27 +254,30 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
         <div className="flex flex-col gap-4 px-6 py-5">
           <FieldRow
             label="Email"
-            value={isEditing ? draft.email : profile.email}
+            value={isEditing ? draft.email : user.email}
             isEditing={isEditing}
             inputType="email"
             onChange={(v) => setDraft((d) => ({ ...d, email: v }))}
           />
           <FieldRow
             label="Phone"
-            value={isEditing ? draft.phone : profile.phone}
+            value={isEditing ? draft.phone : user.phone}
             isEditing={isEditing}
             inputType="tel"
             onChange={(v) => setDraft((d) => ({ ...d, phone: v }))}
           />
           <FieldRow
             label="Location"
-            value={isEditing ? draft.location : profile.location}
+            value={isEditing ? draft.location : user.location}
             isEditing={isEditing}
             onChange={(v) => setDraft((d) => ({ ...d, location: v }))}
           />
           <FieldRow
             label="Member Since"
-            value={profile.memberSince}
+            value={new Date(user.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
             isEditing={false}
             onChange={() => {}}
           />
@@ -265,18 +288,12 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
             <div className="flex gap-3">
               <button
                 onClick={handleCancel}
-                className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition"
+                className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition bg-white/10 hover:bg-white/20"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: `1px solid ${C.cardBorder}`,
                   color: C.muted,
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.06)")
-                }
               >
                 Cancel
               </button>
@@ -308,7 +325,7 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
             </button>
           )}
 
-          {saved && (
+          {showSuccess && (
             <div
               className="mt-3 text-center text-xs font-medium rounded-lg py-1.5"
               style={{

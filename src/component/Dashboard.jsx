@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -9,15 +9,15 @@ import {
   CartesianGrid,
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   RANGE_DATA,
   C,
   cardStyle,
   INITIAL_TRANSACTIONS,
-  INITIAL_PROFILE,
+  indices,
 } from "../constants/mockDataUnified";
-import { formatINR } from "../utils/utils";
+import { formatINR, spark } from "../utils/utils";
 import Dot from "./ui/Dot";
 import Sparkline from "./ui/Sparkline";
 import StatCard from "./ui/StatCard";
@@ -26,60 +26,57 @@ import TopBar from "./ui/TopBar";
 import CustomTooltip from "./ui/CustomToolTip";
 import TimeRangeDropdown from "./ui/TimeRangeDropdown";
 import AssetAllocationChart from "./ui/AssetAllocationChart";
-
-let spark = (base, variance) =>
-  Array.from({ length: 10 }, (_, i) => ({
-    i,
-    v: base + Math.sin(i * 1.3) * variance + i * (variance / 4),
-  }));
-
-let sparkPortfolio = spark(10, 3);
-let sparkProfit = spark(8, 4);
-let sparkNifty = spark(10, 2.5);
-let sparkSensex = spark(10, 2);
-let sparkNasdaq = spark(10, 2.8);
-let indices = [
-  { name: "NIFTY 50", value: "22,302.50", change: "+1.25%", spark: sparkNifty },
-  { name: "SENSEX", value: "73,525.45", change: "+1.08%", spark: sparkSensex },
-  { name: "NASDAQ", value: "18,567.19", change: "+1.35%", spark: sparkNasdaq },
-];
+import EmptyState from "./ui/EmptyState";
+import { useSelector } from "react-redux";
 
 function ViewAll({ to }) {
-  let navigate = useNavigate();
-
   return (
-    <div
+    <Link
       className="text-xs font-medium cursor-pointer"
       style={{ color: C.purple }}
-      onClick={() => navigate(to)}
+      to={to}
     >
       View All
-    </div>
+    </Link>
   );
 }
 
 export default function Dashboard() {
+  let user = useSelector((state) => state.auth.user);
   let [searchQuery, setSearchQuery] = useState("");
   let [selectedRange, setSelectedRange] = useState("This Year");
   let query = searchQuery.trim().toLowerCase();
-  let recentTransactions = INITIAL_TRANSACTIONS.slice(0, 5).map((tx) => ({
-    symbol: tx.ticker,
-    name: tx.name,
-    action: tx.qty != null ? `${tx.type} ${tx.qty} ${tx.unitLabel}` : tx.type,
-    amount: formatINR(tx.amount),
-    time: tx.date,
-    color: tx.color,
-  }));
-  let filteredTransactions = query
-    ? recentTransactions.filter(
-        (t) =>
-          t.symbol.toLowerCase().includes(query) ||
-          t.name.toLowerCase().includes(query),
-      )
-    : recentTransactions;
-  let filteredIndices = query
-    ? indices.filter((index) => index.name.toLowerCase().includes(query))
-    : indices;
+
+  let recentTransactions = useMemo(
+    () =>
+      INITIAL_TRANSACTIONS.slice(0, 5).map((tx) => ({
+        symbol: tx.ticker,
+        name: tx.name,
+        action:
+          tx.qty != null ? `${tx.type} ${tx.qty} ${tx.unitLabel}` : tx.type,
+        amount: formatINR(tx.amount),
+        time: tx.date,
+        color: tx.color,
+      })),
+    [],
+  );
+  let filteredTransactions = useMemo(() => {
+    if (!query) return recentTransactions;
+
+    return recentTransactions.filter(
+      (tx) =>
+        tx.symbol.toLowerCase().includes(query) ||
+        tx.name.toLowerCase().includes(query),
+    );
+  }, [query, recentTransactions]);
+  let filteredIndices = useMemo(() => {
+    if (!query) return indices;
+
+    return indices.filter((index) => index.name.toLowerCase().includes(query));
+  }, [query]);
+  const portfolioSpark = useMemo(() => spark(10, 3), []);
+  const pnlSpark = useMemo(() => spark(8, 4), []);
+
   let selectedRangeData = RANGE_DATA[selectedRange];
 
   return (
@@ -101,7 +98,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="text-xl font-bold" style={{ color: C.text }}>
-              Good Morning, {INITIAL_PROFILE.name} 👋
+              Good Morning, {user.name} 👋
             </div>
             <div className="text-sm mt-1" style={{ color: C.muted }}>
               Here's what's happening with your portfolio today.
@@ -118,7 +115,7 @@ export default function Dashboard() {
             value="₹24,75,430"
             sub={selectedRangeData.changeLabel}
             subColor={C.green}
-            spark={sparkPortfolio}
+            spark={portfolioSpark}
             sparkColor={C.green}
           />
           <StatCard
@@ -126,7 +123,7 @@ export default function Dashboard() {
             value="₹6,347.21"
             sub="+2.35%"
             subColor={C.green}
-            spark={sparkProfit}
+            spark={pnlSpark}
             sparkColor={C.green}
           />
           <StatCard label="Total Investment" value="₹18,45,000" />
@@ -235,12 +232,10 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col gap-4">
               {filteredTransactions.length === 0 ? (
-                <div
-                  className="text-sm text-center py-6"
-                  style={{ color: C.muted }}
-                >
-                  No transactions match "{searchQuery}".
-                </div>
+                <EmptyState
+                  searchQuery={searchQuery}
+                  text={`No transactions match "${searchQuery}"`}
+                />
               ) : (
                 filteredTransactions.map((t) => (
                   <div
@@ -300,12 +295,7 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col gap-4">
               {filteredIndices.length === 0 ? (
-                <div
-                  className="text-sm text-center py-6"
-                  style={{ color: C.muted }}
-                >
-                  No indices match "{searchQuery}".
-                </div>
+                <EmptyState text={`No indices match "${searchQuery}"`} />
               ) : (
                 filteredIndices.map((index) => (
                   <div

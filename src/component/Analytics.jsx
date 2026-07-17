@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -8,20 +8,14 @@ import {
   BarChart,
   Bar,
   Cell,
-  PieChart,
-  Pie,
-  Sector,
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
 import {
   COLORS,
   MONTHLY_RETURNS,
-  ALLOCATION,
   RANGE_OPTIONS,
 } from "../constants/mockDataUnified";
 import Card from "./ui/Card";
-import PieTooltip from "./ui/PieToolTip";
-import { formatINR } from "../utils/utils";
 import BarReturnTooltip from "./ui/BarReturnToolTip";
 import { formatPct } from "../utils/utils";
 import PortfolioGrowthCard from "./ui/PortfolioGrowthCard";
@@ -29,29 +23,12 @@ import ProfileAvatar from "./ui/ProfileAvatar";
 import ProfileModal from "./ui/ProfileModal";
 import AssetAllocationChart from "./ui/AssetAllocationChart";
 
-function renderActiveSlice(props) {
-  let { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-  return (
-    <Sector
-      cx={cx}
-      cy={cy}
-      innerRadius={innerRadius}
-      outerRadius={outerRadius + 6}
-      startAngle={startAngle}
-      endAngle={endAngle}
-      fill={fill}
-      cornerRadius={6}
-    />
-  );
-}
-
 export default function Analytics() {
   let [range, setRange] = useState("1Y");
   let [visibleSeries, setVisibleSeries] = useState({
     portfolio: true,
     nifty: true,
   });
-  let [hoveredSlice, setHoveredSlice] = useState(null);
   let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   let best = MONTHLY_RETURNS[0];
   let worst = MONTHLY_RETURNS[0];
@@ -73,10 +50,16 @@ export default function Analytics() {
     positiveCount,
     total: MONTHLY_RETURNS.length,
   };
-  let allocationTotal = ALLOCATION.reduce((sum, a) => sum + a.value, 0);
 
-  let toggleSeries = (key) =>
-    setVisibleSeries((prev) => ({ ...prev, [key]: !prev[key] }));
+  let toggleSeries = useCallback(
+    (key) => {
+      setVisibleSeries((prev) => ({
+        ...prev,
+        [key]: !prev[key],
+      }));
+    },
+    [setVisibleSeries],
+  );
 
   return (
     <>
@@ -133,7 +116,6 @@ export default function Analytics() {
               <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
             </div>
           </div>
-
           <div className="grid gap-5 lg:grid-cols-3">
             <PortfolioGrowthCard
               range={range}
@@ -189,7 +171,6 @@ export default function Analytics() {
                 </ResponsiveContainer>
               </div>
             </Card>
-
             <Card>
               <h2 className="mb-1 text-[15px] font-semibold text-white">
                 Performance Metrics
@@ -226,20 +207,23 @@ export default function Analytics() {
 }
 
 function Row({ label, value, tone, last = false }) {
-  const toneMap = {
-    green: COLORS.green,
-    red: COLORS.red,
-    white: "#ffffff",
-  };
-  let toneColor = toneMap[tone] || "#ffffff";
-
   return (
     <div
       className={`flex items-center justify-between py-3 ${last ? "" : "border-b"}`}
       style={{ borderColor: COLORS.cardBorder }}
     >
       <span className="text-[13px] text-slate-400">{label}</span>
-      <span className="text-sm font-semibold" style={{ color: toneColor }}>
+      <span
+        className="text-sm font-semibold"
+        style={{
+          color:
+            {
+              green: COLORS.green,
+              red: COLORS.red,
+              white: "#fff",
+            }[tone] ?? "#fff",
+        }}
+      >
         {value}
       </span>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Plus,
   Pencil,
@@ -10,32 +10,28 @@ import {
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import StatCard from "./ui/StatCard";
-import { cardStyle, INITIAL_TRANSACTIONS } from "../constants/mockDataUnified";
+import {
+  cardStyle,
+  INITIAL_TRANSACTIONS,
+  C,
+  ASSET_TABS,
+} from "../constants/mockDataUnified";
 import { buildHoldings, formatINR } from "../utils/utils";
 import AddHoldingForm from "./ui/AddHoldingForm";
 import ProfileModal from "./ui/ProfileModal";
 
-let C = {
-  purple: "#7c5cff",
-  blue: "#3b82f6",
-  green: "#10b981",
-  red: "#ef4444",
-  yellow: "#f59e0b",
-  surface: "#12121e",
-  card: "#1a1a2e",
-  border: "rgba(255,255,255,0.08)",
-};
-let TABS = ["All Holdings", "Equity", "Mutual Funds", "Crypto", "Cash"];
-
 export default function PortfolioPage() {
-  let [activeTab, setActiveTab] = useState("All Holdings");
+  let [activeTab, setActiveTab] = useState("All");
   let [editingTicker, setEditingTicker] = useState(null);
   let [showAddForm, setShowAddForm] = useState(false);
   let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   let [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   let [priceOverrides, setPriceOverrides] = useState({});
   let [editValue, setEditValue] = useState("");
-  let holdings = buildHoldings(transactions, priceOverrides);
+  let holdings = useMemo(
+    () => buildHoldings(transactions, priceOverrides),
+    [transactions, priceOverrides],
+  );
   let { totalInvestment, currentValue } = holdings.reduce(
     (acc, holding) => {
       acc.totalInvestment += holding.invested;
@@ -49,36 +45,48 @@ export default function PortfolioPage() {
     ? (totalProfit / totalInvestment) * 100
     : 0;
   let isProfit = totalProfit >= 0;
-  let summary = [
-    {
-      label: "Total Investment",
-      value: formatINR(totalInvestment),
-      sub: `${holdings.length} positions`,
-      subColor: C.blue,
-    },
-    {
-      label: "Current Value",
-      value: formatINR(currentValue),
-      sub: "Live estimate",
-      subColor: C.purple,
-    },
-    {
-      label: "Total P / L",
-      value: `${isProfit ? "+" : ""}${formatINR(totalProfit)}`,
-      sub: `${isProfit ? "+" : ""}${totalProfitPct.toFixed(2)}%`,
-      subColor: isProfit ? C.green : C.red,
-      right: isProfit ? (
-        <TrendingUp size={18} color={C.green} />
-      ) : (
-        <TrendingDown size={18} color={C.red} />
-      ),
-    },
-  ];
-  let filteredHoldings =
-    activeTab === "All Holdings"
-      ? holdings
-      : holdings.filter((h) => h.assetClass === activeTab);
 
+  let summary = useMemo(
+    () => [
+      {
+        label: "Total Investment",
+        value: formatINR(totalInvestment),
+        sub: `${holdings.length} positions`,
+        subColor: C.blue,
+      },
+      {
+        label: "Current Value",
+        value: formatINR(currentValue),
+        sub: "Live estimate",
+        subColor: C.purple,
+      },
+      {
+        label: "Total P / L",
+        value: `${isProfit ? "+" : ""}${formatINR(totalProfit)}`,
+        sub: `${isProfit ? "+" : ""}${totalProfitPct.toFixed(2)}%`,
+        subColor: isProfit ? C.green : C.red,
+        right: isProfit ? (
+          <TrendingUp size={18} color={C.green} />
+        ) : (
+          <TrendingDown size={18} color={C.red} />
+        ),
+      },
+    ],
+    [
+      holdings.length,
+      totalInvestment,
+      currentValue,
+      totalProfit,
+      totalProfitPct,
+    ],
+  );
+  let filteredHoldings = useMemo(
+    () =>
+      activeTab === "All"
+        ? holdings
+        : holdings.filter((h) => h.assetClass === activeTab),
+    [holdings, activeTab],
+  );
   let handleAddHolding = (holding) => {
     let newTx = {
       id: Date.now(),
@@ -89,11 +97,9 @@ export default function PortfolioPage() {
 
     setTransactions((prev) => [...prev, newTx]);
   };
-
   let handleDelete = (ticker) => {
     setTransactions((prev) => prev.filter((t) => t.ticker !== ticker));
   };
-
   let handleEdit = (ticker, currentPrice) => {
     if (editingTicker === ticker) {
       setEditingTicker(null);
@@ -103,7 +109,6 @@ export default function PortfolioPage() {
     setEditValue(String(currentPrice));
     setEditingTicker(ticker);
   };
-
   let commitPrice = (ticker) => {
     let parsed = parseFloat(editValue);
     if (!Number.isNaN(parsed)) {
@@ -123,7 +128,6 @@ export default function PortfolioPage() {
         style={{ background: "#0a0a12" }}
       >
         <PortfolioSidebar />
-
         <main className="flex-1 p-8 overflow-x-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -160,7 +164,6 @@ export default function PortfolioPage() {
               />
             </div>
           )}
-
           <div className="grid grid-cols-3 gap-4 mb-6">
             {summary.map((card) => (
               <StatCard
@@ -173,12 +176,11 @@ export default function PortfolioPage() {
               />
             ))}
           </div>
-
           <div
             className="flex items-center gap-6 border-b mb-5"
-            style={{ borderColor: C.border }}
+            style={{ borderColor: C.cardBorder }}
           >
-            {TABS.map((tab) => (
+            {ASSET_TABS.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -200,13 +202,12 @@ export default function PortfolioPage() {
               </button>
             ))}
           </div>
-
-          {filteredHoldings.length === 0 && activeTab !== "All Holdings" ? (
+          {filteredHoldings.length === 0 && activeTab !== "All" ? (
             <div
               className="rounded-2xl border flex flex-col items-center justify-center py-20 text-center"
               style={{
                 background: "rgba(255,255,255,0.03)",
-                borderColor: C.border,
+                borderColor: C.cardBorder,
               }}
             >
               <BarChart2 size={36} className="text-gray-600 mb-3" />
@@ -227,7 +228,7 @@ export default function PortfolioPage() {
                   <thead>
                     <tr
                       className="text-left text-xs uppercase tracking-wide border-b"
-                      style={{ borderColor: C.border, color: "#6b7280" }}
+                      style={{ borderColor: C.cardBorder, color: "#6b7280" }}
                     >
                       <th className="px-5 py-3 font-medium">Stock</th>
                       <th className="px-5 py-3 font-medium">Qty</th>
@@ -247,7 +248,7 @@ export default function PortfolioPage() {
                           key={h.ticker}
                           className="border-b last:border-0 transition"
                           style={{
-                            borderColor: C.border,
+                            borderColor: C.cardBorder,
                             background: isEditing
                               ? "rgba(255,255,255,0.03)"
                               : "transparent",
@@ -275,7 +276,6 @@ export default function PortfolioPage() {
                           <td className="px-5 py-4 text-gray-300">
                             {formatINR(h.buy)}
                           </td>
-
                           <td className="px-5 py-4 text-gray-300">
                             {isEditing ? (
                               <input
@@ -292,11 +292,9 @@ export default function PortfolioPage() {
                               formatINR(h.current)
                             )}
                           </td>
-
                           <td className="px-5 py-4 text-gray-300">
                             {formatINR(h.invested)}
                           </td>
-
                           <td className="px-5 py-4">
                             <div
                               className="flex items-center gap-1 font-medium"
@@ -321,7 +319,6 @@ export default function PortfolioPage() {
                               {formatINR((h.invested * h.pl) / 100)}
                             </div>
                           </td>
-
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2">
                               <button
@@ -349,7 +346,6 @@ export default function PortfolioPage() {
                         </tr>
                       );
                     })}
-
                     {filteredHoldings.length === 0 && (
                       <tr>
                         <td
@@ -383,7 +379,7 @@ export default function PortfolioPage() {
                     {i < arr.length - 1 && (
                       <div
                         className="h-10 w-px hidden sm:block"
-                        style={{ background: C.border }}
+                        style={{ background: C.cardBorder }}
                       />
                     )}
                   </div>

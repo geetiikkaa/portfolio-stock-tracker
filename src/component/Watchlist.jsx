@@ -1,29 +1,13 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
 import { Plus, Star, X, ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import Tabs from "./ui/Tabs";
 import ProfileModal from "./ui/ProfileModal";
+import { C, INITIAL_STOCKS } from "../constants/mockDataUnified";
+import { trendSpark } from "../utils/utils";
 
-let C = {
-  bgTop: "#0B0F1D",
-  bgBottom: "#060810",
-  card: "#11162A",
-  cardBorder: "rgba(255,255,255,0.06)",
-  text: "#F3F5FB",
-  muted: "#8A91A8",
-  mutedSoft: "#6B7286",
-  green: "#34D6A0",
-  greenSoft: "rgba(52,214,160,0.14)",
-  purple: "#8C7CF6",
-  red: "#F0716B",
-  redSoft: "rgba(240,113,107,0.14)",
-  blue: "#5B72F0",
-  teal: "#2BCB8E",
-  orange: "#F5A623",
-  lavender: "#B49CF5",
-};
 let cardStyle = {
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
@@ -34,103 +18,6 @@ let cardStyle = {
 };
 let TABS = ["All", "Favourites", "Trending"];
 let AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
-
-function trendSpark(direction, points = 24) {
-  let value = direction === "up" ? 40 : 60;
-
-  let drift = direction === "up" ? 0.4 : -0.4;
-
-  return Array.from({ length: points }, (_, i) => {
-    value += drift + (Math.random() - 0.5) * 4;
-
-    return {
-      i,
-      v: value,
-    };
-  });
-}
-
-let INITIAL_STOCKS = [
-  {
-    id: 1,
-    ticker: "AAPL",
-    name: "Apple Inc.",
-    initial: "A",
-    color: "#2B2F38",
-    price: 21250,
-    change: 2.35,
-    favourite: true,
-    trending: true,
-    sparkProps: {
-      drift: 2.5,
-      volatility: 1.4,
-    },
-  },
-  {
-    id: 2,
-    ticker: "TSLA",
-    name: "Tesla Inc.",
-    initial: "T",
-    color: "#B91C1C",
-    price: 182.45,
-    change: -1.25,
-    favourite: false,
-    trending: true,
-    sparkProps: {
-      drift: 2.0,
-      volatility: 3.5,
-    },
-  },
-  {
-    id: 3,
-    ticker: "NVDA",
-    name: "NVIDIA Corp.",
-    initial: "N",
-    color: "#15803D",
-    price: 1195.35,
-    change: 3.2,
-    favourite: true,
-    trending: true,
-    sparkProps: {
-      drift: 3.0,
-      volatility: 2.8,
-    },
-  },
-  {
-    id: 4,
-    ticker: "AMZN",
-    name: "Amazon.com",
-    initial: "A",
-    color: "#B45309",
-    price: 186.45,
-    change: 0.85,
-    favourite: false,
-    trending: false,
-    sparkProps: {
-      drift: 1.5,
-      volatility: 1.8,
-    },
-  },
-  {
-    id: 5,
-    ticker: "GOOGL",
-    name: "Alphabet Inc.",
-    initial: "G",
-    color: "#1D4ED8",
-    price: 2852.65,
-    change: 1.15,
-    favourite: true,
-    trending: false,
-    sparkProps: {
-      drift: 1.8,
-      volatility: 2.0,
-    },
-  },
-].map((s) => ({
-  ...s,
-  spark: trendSpark(s.change >= 0 ? "up" : "down", 24),
-}));
-
 let emptyForm = {
   ticker: "",
   name: "",
@@ -256,20 +143,22 @@ export default function Watchlist() {
   let [form, setForm] = useState(emptyForm);
   let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const filtered = stocks.filter((stock) => {
-    if (activeTab === "Favourites") return stock.favourite;
-    if (activeTab === "Trending") return stock.trending;
-    return true;
-  });
+  let filtered = useMemo(() => {
+    return stocks.filter((stock) => {
+      if (activeTab === "Favourites") return stock.favourite;
+      if (activeTab === "Trending") return stock.trending;
+      return true;
+    });
+  }, [stocks, activeTab]);
+  let sorted = useMemo(() => {
+    if (!sortKey) return filtered;
 
-  const sorted = !sortKey
-    ? filtered
-    : [...filtered].sort((a, b) =>
-        sortDirection === "asc"
-          ? a[sortKey] - b[sortKey]
-          : b[sortKey] - a[sortKey],
-      );
-
+    return [...filtered].sort((a, b) =>
+      sortDirection === "asc"
+        ? a[sortKey] - b[sortKey]
+        : b[sortKey] - a[sortKey],
+    );
+  }, [filtered, sortKey, sortDirection]);
   function handleSort(key) {
     if (sortKey === key) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
@@ -278,27 +167,27 @@ export default function Watchlist() {
       setSortDirection("desc");
     }
   }
-
   function handleToggleFavourite(id) {
     setStocks((prev) =>
       prev.map((s) => (s.id === id ? { ...s, favourite: !s.favourite } : s)),
     );
   }
-
   function handleRemove(id) {
     setStocks((prev) => prev.filter((s) => s.id !== id));
   }
-
   function handleSubmit(e) {
-    e.preventDefault();
-    if (!form.ticker.trim() || !form.name.trim() || !form.price) return;
-
+    let ticker = form.ticker.trim().toUpperCase();
+    let name = form.name.trim();
     let change = Number(form.change) || 0;
+
+    e.preventDefault();
+    if (!ticker || !name || !form.price) return;
+
     let newStock = {
       id: Date.now(),
-      ticker: form.ticker.trim().toUpperCase(),
-      name: form.name.trim(),
-      initial: form.ticker.trim().slice(0, 1).toUpperCase(),
+      ticker,
+      name,
+      initial: ticker,
       color: AVATAR_COLORS[stocks.length % AVATAR_COLORS.length],
       price: Number(form.price),
       change,
@@ -311,6 +200,15 @@ export default function Watchlist() {
     setForm(emptyForm);
     setShowForm(false);
   }
+
+  let handleChange = (e) => {
+    let { name, value, type, checked } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
   return (
     <>
@@ -328,7 +226,6 @@ export default function Watchlist() {
           }}
         >
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
-
           <div className="flex items-center justify-between mb-6">
             <div className="text-2xl font-bold" style={{ color: C.text }}>
               Watchlist
@@ -344,7 +241,6 @@ export default function Watchlist() {
               <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
             </div>
           </div>
-
           {showForm && (
             <form
               onSubmit={handleSubmit}
@@ -359,10 +255,9 @@ export default function Watchlist() {
                   Ticker
                 </label>
                 <input
+                  name="ticker"
                   value={form.ticker}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, ticker: e.target.value }))
-                  }
+                  onChange={handleChange}
                   placeholder="MSFT"
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
@@ -380,10 +275,9 @@ export default function Watchlist() {
                   Company Name
                 </label>
                 <input
+                  name="name"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
+                  onChange={handleChange}
                   placeholder="Microsoft Corp."
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
@@ -401,11 +295,10 @@ export default function Watchlist() {
                   Price (₹)
                 </label>
                 <input
+                  name="price"
                   type="number"
                   value={form.price}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, price: e.target.value }))
-                  }
+                  onChange={handleChange}
                   placeholder="3450"
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
@@ -423,12 +316,11 @@ export default function Watchlist() {
                   Change %
                 </label>
                 <input
+                  name="change"
                   type="number"
                   step="0.01"
                   value={form.change}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, change: e.target.value }))
-                  }
+                  onChange={handleChange}
                   placeholder="1.50"
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
@@ -443,11 +335,10 @@ export default function Watchlist() {
                 style={{ color: C.muted }}
               >
                 <input
+                  name="trending"
                   type="checkbox"
                   checked={form.trending}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, trending: e.target.checked }))
-                  }
+                  onChange={handleChange}
                 />
                 Mark as trending
               </label>
@@ -465,9 +356,7 @@ export default function Watchlist() {
               </div>
             </form>
           )}
-
           <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
-
           <div style={cardStyle} className="p-5 mt-8">
             <table className="w-full">
               <thead>
@@ -484,10 +373,10 @@ export default function Watchlist() {
                     style={{ color: C.muted }}
                   >
                     <span className="flex items-center gap-1">
-                      Price{" "}
+                      Price
                       <SortIcon
                         active={sortKey === "price"}
-                        sortDir={sortDirection}
+                        sortDirection={sortDirection}
                       />
                     </span>
                   </th>
@@ -520,7 +409,6 @@ export default function Watchlist() {
                 ))}
               </tbody>
             </table>
-
             {sorted.length === 0 && (
               <div
                 className="py-10 text-center text-sm"
@@ -534,7 +422,6 @@ export default function Watchlist() {
               </div>
             )}
           </div>
-
           <div className="text-xs mt-3" style={{ color: C.mutedSoft }}>
             Showing {sorted.length} of {stocks.length} stocks
           </div>

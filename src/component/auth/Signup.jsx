@@ -13,17 +13,21 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
+    location: "",
   });
   const update = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios.post("http://localhost:8000/api/signup", {
+    const res = await axios.post("http://localhost:8000/api/auth/signup", {
       name: form.name,
       email: form.email,
       password: form.password,
       confirmPassword: form.confirmPassword,
+      phone: form.phone,
+      location: form.location,
     });
     console.log(res.data);
     localStorage.setItem("token", res.data.token);
@@ -33,15 +37,12 @@ export default function Signup() {
   return (
     <div className="min-h-screen w-full bg-[#0a0a12] flex items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#12121d] p-7 shadow-2xl">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-6">
           <Sparkles size={20} className="text-[#9d7bff]" />
           <span className="text-white font-semibold text-lg">Wealthora</span>
         </div>
-
-        {/* Heading */}
         <h1 className="text-white text-2xl font-bold text-center mb-1">
-          Create Account{" "}
+          Create Account
           <span role="img" aria-label="rocket">
             🚀
           </span>
@@ -49,8 +50,6 @@ export default function Signup() {
         <p className="text-gray-400 text-sm text-center mb-6">
           Join us and start your investment journey
         </p>
-
-        {/* Form */}
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div>
             <label className="block text-sm text-gray-300 mb-1.5">
@@ -64,7 +63,6 @@ export default function Signup() {
               className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60 focus:ring-1 focus:ring-[#7c5cff]/40"
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-300 mb-1.5">
               Email Address
@@ -77,7 +75,6 @@ export default function Signup() {
               className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60 focus:ring-1 focus:ring-[#7c5cff]/40"
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-300 mb-1.5">
               Password
@@ -100,7 +97,6 @@ export default function Signup() {
               </button>
             </div>
           </div>
-
           <div>
             <label className="block text-sm text-gray-300 mb-1.5">
               Confirm Password
@@ -123,7 +119,28 @@ export default function Signup() {
               </button>
             </div>
           </div>
-
+          <div>
+            <label className="block text-sm text-gray-300 mb-1.5">Phone</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={update("phone")}
+              placeholder="Enter your Phone no."
+              className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60 focus:ring-1 focus:ring-[#7c5cff]/40"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1.5">
+              Location
+            </label>
+            <input
+              type="text"
+              value={form.location}
+              onChange={update("location")}
+              placeholder="Enter your location"
+              className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60 focus:ring-1 focus:ring-[#7c5cff]/40"
+            />
+          </div>
           <label className="flex items-start gap-2 text-sm text-gray-300 pt-1 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -132,13 +149,12 @@ export default function Signup() {
               className="h-3.5 w-3.5 mt-0.5 rounded border-white/20 bg-[#1a1a28] accent-[#7c5cff]"
             />
             <span>
-              I agree to the{" "}
+              I agree to the
               <a href="#" className="text-[#9d7bff] hover:text-[#b39bff]">
                 Terms &amp; Conditions
               </a>
             </span>
           </label>
-
           <button
             type="submit"
             onClick={handleSubmit}
@@ -147,10 +163,8 @@ export default function Signup() {
             Create Account
           </button>
         </form>
-
-        {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
-          Already have an account?{" "}
+          Already have an account?
           <Link
             to="/"
             className="text-[#9d7bff] hover:text-[#b39bff] font-medium"

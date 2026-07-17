@@ -2,25 +2,35 @@ import { useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { setUser } from "../../features/auth/authSlice";
+import { useDispatch } from "react-redux";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const handleSubmit = async (e) => {
+  let dispatch = useDispatch();
+  let navigate = useNavigate();
+  let handleSubmit = async (e) => {
     e.preventDefault();
 
-    let response = await axios.post("http://localhost:8000/api/login", {
+    let response = await axios.post("http://localhost:8000/api/auth/login", {
       email,
       password,
     });
 
     console.log(response.data);
     localStorage.setItem("token", response.data.token);
+    let me = await axios.get("http://localhost:8000/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${response.data.token}`,
+      },
+    });
+
+    dispatch(setUser(me.data));
     navigate("/dashboard");
   };
-  const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  let [showPassword, setShowPassword] = useState(false);
+  let [remember, setRemember] = useState(false);
+  let [email, setEmail] = useState("");
+  let [password, setPassword] = useState("");
 
   return (
     <div className="min-h-screen w-full bg-[#0a0a12] flex items-center justify-center p-4">
@@ -31,7 +41,6 @@ export default function Login() {
           <span className="text-white font-semibold text-lg">Wealthora</span>
         </div>
 
-        {/* Heading */}
         <h1 className="text-white text-2xl font-bold text-center mb-1">
           Welcome Back
           <span role="img" aria-label="wave">
@@ -42,7 +51,6 @@ export default function Login() {
           Login to continue to your account
         </p>
 
-        {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm text-gray-300 mb-1.5">
@@ -103,7 +111,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
           Don't have an account?
           <Link

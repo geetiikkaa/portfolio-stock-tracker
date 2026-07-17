@@ -8,6 +8,7 @@ import {
     Target,
 } from "lucide-react";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { spark, trendSpark } from "../utils/utils";
 
 export const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -464,5 +465,173 @@ export function computeHoldings(
             };
         });
 }
-
 export const PORTFOLIO_HOLDINGS = computeHoldings();
+export let INDEX_CARDS = [
+    {
+        name: "NIFTY 50",
+        value: "22,302.50",
+        change: "+1.25%",
+        spark: spark(24, {
+            start: 100,
+            drift: 0.35,
+            volatility: 4,
+        }),
+    },
+    {
+        name: "SENSEX",
+        value: "73,525.45",
+        change: "+1.08%",
+        spark: spark(24, {
+            start: 95,
+            drift: 0.3,
+            volatility: 4,
+        }),
+    },
+    {
+        name: "NASDAQ",
+        value: "18,567.19",
+        change: "+1.35%",
+        spark: spark(24, {
+            start: 110,
+            drift: 0.5,
+            volatility: 4,
+        }),
+    },
+    {
+        name: "BANK NIFTY",
+        value: "48,125.30",
+        change: "+1.46%",
+        spark: spark(24, {
+            start: 90,
+            drift: 0.45,
+            volatility: 4,
+        }),
+    },
+];
+export let TOP_GAINERS = [
+    { stock: "NVDA", price: 1195.55, change: 8.24 },
+    { stock: "ADANIENT", price: 3245.6, change: 6.35 },
+    { stock: "TITAN", price: 3408.5, change: 5.21 },
+    { stock: "WIPRO", price: 512.35, change: 4.25 },
+    { stock: "COALINDIA", price: 542.6, change: 3.98 },
+    { stock: "TATAMOTORS", price: 945.2, change: 3.72 },
+    { stock: "ONGC", price: 268.15, change: 3.45 },
+    { stock: "SBIN", price: 812.9, change: 3.1 },
+    { stock: "AXISBANK", price: 1145.65, change: 2.88 },
+    { stock: "ITC", price: 438.2, change: 2.55 },
+];
+export let TOP_LOSERS = [
+    { stock: "M&M", price: 2615.9, change: -3.25 },
+    { stock: "BAJFINANCE", price: 6026.25, change: -2.45 },
+    { stock: "NESTLEIND", price: 2150.15, change: -2.1 },
+    { stock: "MARUTI", price: 10250.3, change: -1.85 },
+    { stock: "POWERGRID", price: 295.45, change: -1.65 },
+    { stock: "HINDUNILVR", price: 2480.7, change: -1.52 },
+    { stock: "ASIANPAINT", price: 2890.15, change: -1.38 },
+    { stock: "BHARTIARTL", price: 1325.4, change: -1.2 },
+    { stock: "KOTAKBANK", price: 1745.85, change: -1.05 },
+    { stock: "ULTRACEMCO", price: 9875.6, change: -0.92 },
+];
+export let MARKET_NEWS = [
+    { title: "RBI keeps repo rate unchanged", time: "2h ago" },
+    { title: "Global markets rally ahead of US CPI data", time: "4h ago" },
+    { title: "Oil prices rise on supply concerns", time: "6h ago" },
+    { title: "IT sector stocks surge on strong earnings", time: "8h ago" },
+    { title: "Rupee strengthens against the dollar", time: "10h ago" },
+    { title: "FIIs turn net buyers in Indian equities", time: "12h ago" },
+];
+export let INITIAL_STOCKS = [
+    {
+        id: 1,
+        ticker: "AAPL",
+        name: "Apple Inc.",
+        initial: "A",
+        color: "#2B2F38",
+        price: 21250,
+        change: 2.35,
+        favourite: true,
+        trending: true,
+        sparkProps: {
+            drift: 2.5,
+            volatility: 1.4,
+        },
+    },
+    {
+        id: 2,
+        ticker: "TSLA",
+        name: "Tesla Inc.",
+        initial: "T",
+        color: "#B91C1C",
+        price: 182.45,
+        change: -1.25,
+        favourite: false,
+        trending: true,
+        sparkProps: {
+            drift: 2.0,
+            volatility: 3.5,
+        },
+    },
+    {
+        id: 3,
+        ticker: "NVDA",
+        name: "NVIDIA Corp.",
+        initial: "N",
+        color: "#15803D",
+        price: 1195.35,
+        change: 3.2,
+        favourite: true,
+        trending: true,
+        sparkProps: {
+            drift: 3.0,
+            volatility: 2.8,
+        },
+    },
+    {
+        id: 4,
+        ticker: "AMZN",
+        name: "Amazon.com",
+        initial: "A",
+        color: "#B45309",
+        price: 186.45,
+        change: 0.85,
+        favourite: false,
+        trending: false,
+        sparkProps: {
+            drift: 1.5,
+            volatility: 1.8,
+        },
+    },
+    {
+        id: 5,
+        ticker: "GOOGL",
+        name: "Alphabet Inc.",
+        initial: "G",
+        color: "#1D4ED8",
+        price: 2852.65,
+        change: 1.15,
+        favourite: true,
+        trending: false,
+        sparkProps: {
+            drift: 1.8,
+            volatility: 2.0,
+        },
+    },
+].map((s) => ({
+    ...s,
+    spark: trendSpark(s.change >= 0 ? "up" : "down", 24),
+}));
+export let indices = [
+    {
+        name: "NIFTY 50",
+        value: "22,302.50",
+        change: "+1.25%",
+        spark: spark(10, 2.5),
+    },
+    { name: "SENSEX", value: "73,525.45", change: "+1.08%", spark: spark(10, 2) },
+    {
+        name: "NASDAQ",
+        value: "18,567.19",
+        change: "+1.35%",
+        spark: spark(10, 2.8),
+    },
+];
