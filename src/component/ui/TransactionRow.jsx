@@ -1,8 +1,9 @@
-import { TYPE_STYLES } from "../../constants/mockDataUnified";
+import { TYPE_STYLES } from "../../constants/ui";
 import { CheckCircle2, Clock3, Trash2 } from "lucide-react";
 import { formatINR } from "../../utils/utils";
 
 export default function TransactionRow({ filtered, handleDelete }) {
+  console.log(filtered);
   return (
     <>
       {filtered.map((transaction) => {
@@ -23,10 +24,10 @@ export default function TransactionRow({ filtered, handleDelete }) {
                 </div>
                 <div>
                   <div className="font-semibold text-white">
-                    {transaction.ticker} - {transaction.name}
+                    {transaction.ticker_snapshot} - {transaction.asset_id?.name}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {transaction.assetClass}
+                    {transaction.asset_id?.asset_class}
                   </div>
                 </div>
               </div>
@@ -40,14 +41,16 @@ export default function TransactionRow({ filtered, handleDelete }) {
               </span>
             </td>
             <td className="px-5 py-4 text-gray-300">
-              {transaction.qty
-                ? `${transaction.qty} ${transaction.unitLabel}`
+              {transaction.quantity
+                ? `${transaction.quantity} ${transaction.unitLabel}`
                 : "—"}
             </td>
             <td className="px-5 py-4 font-medium text-white">
               {formatINR(transaction.amount)}
             </td>
-            <td className="px-5 py-4 text-gray-400">{transaction.date}</td>
+            <td className="px-5 py-4 text-gray-400">
+              {new Date(transaction.occurred_at).toLocaleDateString()}
+            </td>
             <td className="px-5 py-4">
               <span
                 className={`inline-flex items-center gap-1 text-xs font-medium ${
@@ -66,7 +69,7 @@ export default function TransactionRow({ filtered, handleDelete }) {
             </td>
             <td className="px-5 py-4">
               <button
-                onClick={() => handleDelete(transaction.id)}
+                onClick={() => handleDelete(transaction._id)}
                 className="h-7 w-7 flex items-center justify-center rounded-md bg-white/5 text-gray-400 hover:text-red-400 hover:bg-white/10 transition"
               >
                 <Trash2 size={13} />

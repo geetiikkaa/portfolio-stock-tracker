@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Star, Camera, Check, Pencil } from "lucide-react";
-import { INITIAL_PROFILE, C } from "../../constants/mockDataUnified";
+import { INITIAL_PROFILE } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 import { useSelector } from "react-redux";
 import { setUser } from "../../features/auth/authSlice";
 import { useDispatch } from "react-redux";
@@ -47,7 +48,6 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
   let [isEditing, setIsEditing] = useState(false);
   let [showSuccess, setShowSuccess] = useState(false);
   let backdropRef = useRef(null);
-  let fileRef = useRef(null);
 
   useEffect(() => {
     if (isModalOpen && user) {
@@ -56,7 +56,7 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
-        avatar: user.avatar || "",
+        avatar: user.image || "",
       });
 
       setIsEditing(false);
@@ -87,22 +87,38 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
       email: user.email || "",
       phone: user.phone || "",
       location: user.location || "",
-      avatar: user.avatar || "",
+      avatar: user.image || "",
     });
 
     setIsEditing(true);
   }
 
   function handleCancel() {
-    setDraft(profile);
+    setDraft({
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      location: user.location || "",
+      avatar: user.image || "",
+    });
     setIsEditing(false);
   }
 
   async function handleSave() {
     try {
-      const response = await axios.put(
-        "http://localhost:8000/api/auth/update",
-        draft,
+      let formData = new FormData();
+
+      formData.append("name", draft.name);
+      formData.append("phone", draft.phone);
+      formData.append("location", draft.location);
+
+      if (draft.image) {
+        formData.append("userImage", draft.image);
+      }
+
+      let response = await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/auth/update`,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -119,21 +135,31 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
         setShowSuccess(false);
       }, 2000);
     } catch (err) {
-      console.error(err);
+      console.error(err.response.data);
     }
   }
 
   function handleAvatarChange(e) {
     let file = e.target.files?.[0];
     if (!file) return;
+
+    setDraft((d) => ({
+      ...d,
+      image: file,
+    }));
+
     let reader = new FileReader();
     reader.onload = (ev) => {
-      setDraft((d) => ({ ...d, avatar: ev.target.result }));
+      setDraft((d) => ({
+        ...d,
+        avatar: ev.target.result,
+      }));
     };
     reader.readAsDataURL(file);
   }
-
-  let avatarSrc = isEditing ? draft.avatar : profile.avatar;
+  let avatarSrc = draft.avatar?.startsWith("data:")
+    ? draft.avatar
+    : `${import.meta.env.VITE_SERVER_URL}/userProfile/${user.image}`;
 
   return (
     <div
@@ -196,23 +222,20 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
             </div>
 
             {isEditing && (
-              <>
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="absolute inset-0 rounded-full flex items-center justify-center transition"
-                  style={{ background: "rgba(0,0,0,0.45)", color: "#fff" }}
-                  aria-label="Change profile photo"
-                >
-                  <Camera size={18} />
-                </button>
+              <label
+                className="absolute inset-0 rounded-full flex items-center justify-center transition"
+                style={{ background: "rgba(0,0,0,0.45)", color: "#fff" }}
+                aria-label="Change profile photo"
+              >
+                <Camera size={18} />
                 <input
-                  ref={fileRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={handleAvatarChange}
+                  name="userImage"
                 />
-              </>
+              </label>
             )}
           </div>
 

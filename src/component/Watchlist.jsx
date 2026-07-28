@@ -1,30 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
-import { Plus, Star, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Star, X, ChevronUp, ChevronDown } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import Tabs from "./ui/Tabs";
 import ProfileModal from "./ui/ProfileModal";
-import { C, INITIAL_STOCKS } from "../constants/mockDataUnified";
+import { C, cardStyle } from "../constants/ui";
 import { trendSpark } from "../utils/utils";
+import axios from "axios";
 
-let cardStyle = {
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
-  border: `1px solid ${C.cardBorder}`,
-  borderRadius: "20px",
-  boxShadow:
-    "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
-};
 let TABS = ["All", "Favourites", "Trending"];
-let AVATAR_COLORS = [C.blue, C.red, C.teal, C.orange, C.purple, C.lavender];
-let emptyForm = {
-  ticker: "",
-  name: "",
-  price: "",
-  change: "",
-  trending: false,
-};
+let BASE_URL = import.meta.env.VITE_BASE_URL;
 
 function Sparkline({ data, color, width = 90, height = 36 }) {
   let id = React.useId().replace(/:/g, "");
@@ -63,7 +49,7 @@ function WatchlistRow({ stock, onToggleFavourite, onRemove }) {
       <td className="py-4 pr-3">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onToggleFavourite(stock.id)}
+            onClick={() => onToggleFavourite(stock.id, stock.favourite)}
             className="shrink-0"
             aria-label="Toggle favourite"
           >
@@ -135,13 +121,119 @@ let SortIcon = ({ active, sortDirection }) =>
   ) : null;
 
 export default function Watchlist() {
-  let [stocks, setStocks] = useState(INITIAL_STOCKS);
+  let [stocks, setStocks] = useState([]);
+  let [isLoading, setIsLoading] = useState(true);
+  let [error, setError] = useState(null);
   let [activeTab, setActiveTab] = useState("All");
-  let [sortKey, setSortKey] = useState(null); // "price" | "change"
+  let [sortKey, setSortKey] = useState(null);
   let [sortDirection, setSortDirection] = useState("desc");
-  let [showForm, setShowForm] = useState(false);
-  let [form, setForm] = useState(emptyForm);
   let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  function getColor(ticker = "") {
+    const colors = [
+      C.blue,
+      C.purple,
+      C.green,
+      C.red,
+      "#f59e0b",
+      "#14b8a6",
+      "#6366f1",
+      "#ec4899",
+    ];
+
+    let hash = 0;
+
+    for (let i = 0; i < ticker.length; i++) {
+      hash = ticker.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  function mapWatchlist(apiWatchlist) {
+    return apiWatchlist.map((item) => ({
+      id: item._id,
+      assetId: item.asset_id?._id,
+
+      ticker: item.asset_id?.ticker,
+      name: item.asset_id?.name,
+
+      favourite: item.favourite,
+      trending: item.trending,
+
+      price: item.asset_id?.currentPrice ?? 0,
+      change: item.asset_id?.percentChange ?? 0,
+
+      initial: item.asset_id?.ticker[0],
+      color: getColor(item.asset_id?.ticker),
+
+      spark: trendSpark(
+        (item.asset_id?.percentChange ?? 0) >= 0 ? "up" : "down",
+      ),
+    }));
+  }
+
+  const loadQuotes = async (stocks) => {
+    const token = localStorage.getItem("token");
+
+    const updatedStocks = await Promise.all(
+      stocks.map(async (stock) => {
+        try {
+          const { data } = await axios.get(
+            `${BASE_URL}/market/quote/${stock.ticker}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            },
+          );
+
+          return {
+            ...stock,
+            price: data.data.currentPrice,
+            change: data.data.percentChange,
+            spark: trendSpark(data.data.percentChange >= 0 ? "up" : "down"),
+          };
+        } catch (err) {
+          console.error(`Failed to fetch quote for ${stock.ticker}`, err);
+
+          return stock;
+        }
+      }),
+    );
+
+    setStocks(updatedStocks);
+  };
+
+  const loadWatchlist = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const { data } = await axios.get(`${BASE_URL}/watchlistItems`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+
+      const mapped = mapWatchlist(data.watchlist);
+
+      setStocks(mapped);
+      loadQuotes(mapped);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load watchlist");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWatchlist();
+  }, []);
 
   let filtered = useMemo(() => {
     return stocks.filter((stock) => {
@@ -167,47 +259,52 @@ export default function Watchlist() {
       setSortDirection("desc");
     }
   }
-  function handleToggleFavourite(id) {
-    setStocks((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, favourite: !s.favourite } : s)),
-    );
-  }
-  function handleRemove(id) {
-    setStocks((prev) => prev.filter((s) => s.id !== id));
-  }
-  function handleSubmit(e) {
-    let ticker = form.ticker.trim().toUpperCase();
-    let name = form.name.trim();
-    let change = Number(form.change) || 0;
+  const handleToggleFavourite = async (id, favourite) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    e.preventDefault();
-    if (!ticker || !name || !form.price) return;
+      await axios.put(
+        `${BASE_URL}/watchlistItems/${id}`,
+        {
+          favourite: !favourite,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        },
+      );
 
-    let newStock = {
-      id: Date.now(),
-      ticker,
-      name,
-      initial: ticker,
-      color: AVATAR_COLORS[stocks.length % AVATAR_COLORS.length],
-      price: Number(form.price),
-      change,
-      favourite: false,
-      trending: form.trending,
-      spark: trendSpark(change >= 0 ? "up" : "down"),
-    };
+      setStocks((prev) =>
+        prev.map((stock) =>
+          stock.id === id
+            ? {
+                ...stock,
+                favourite: !stock.favourite,
+              }
+            : stock,
+        ),
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const handleRemove = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    setStocks((prev) => [newStock, ...prev]);
-    setForm(emptyForm);
-    setShowForm(false);
-  }
+      await axios.delete(`${BASE_URL}/watchlistItems/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
 
-  let handleChange = (e) => {
-    let { name, value, type, checked } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+      setStocks((prev) => prev.filter((stock) => stock.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -231,131 +328,9 @@ export default function Watchlist() {
               Watchlist
             </div>
             <div className="flex gap-4">
-              <button
-                onClick={() => setShowForm((v) => !v)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] text-white"
-              >
-                {showForm ? <X size={15} /> : <Plus size={15} />}
-                {showForm ? "Cancel" : "Add Stock"}
-              </button>
               <ProfileAvatar onClick={() => setIsProfileModalOpen(true)} />
             </div>
           </div>
-          {showForm && (
-            <form
-              onSubmit={handleSubmit}
-              style={cardStyle}
-              className="p-5 mb-5 grid grid-cols-2 sm:grid-cols-5 gap-3 items-end"
-            >
-              <div>
-                <label
-                  className="block text-xs mb-1"
-                  style={{ color: C.muted }}
-                >
-                  Ticker
-                </label>
-                <input
-                  name="ticker"
-                  value={form.ticker}
-                  onChange={handleChange}
-                  placeholder="MSFT"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{
-                    background: "#1A2036",
-                    border: `1px solid ${C.cardBorder}`,
-                    color: C.text,
-                  }}
-                />
-              </div>
-              <div className="col-span-2">
-                <label
-                  className="block text-xs mb-1"
-                  style={{ color: C.muted }}
-                >
-                  Company Name
-                </label>
-                <input
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Microsoft Corp."
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{
-                    background: "#1A2036",
-                    border: `1px solid ${C.cardBorder}`,
-                    color: C.text,
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  className="block text-xs mb-1"
-                  style={{ color: C.muted }}
-                >
-                  Price (₹)
-                </label>
-                <input
-                  name="price"
-                  type="number"
-                  value={form.price}
-                  onChange={handleChange}
-                  placeholder="3450"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{
-                    background: "#1A2036",
-                    border: `1px solid ${C.cardBorder}`,
-                    color: C.text,
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  className="block text-xs mb-1"
-                  style={{ color: C.muted }}
-                >
-                  Change %
-                </label>
-                <input
-                  name="change"
-                  type="number"
-                  step="0.01"
-                  value={form.change}
-                  onChange={handleChange}
-                  placeholder="1.50"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{
-                    background: "#1A2036",
-                    border: `1px solid ${C.cardBorder}`,
-                    color: C.text,
-                  }}
-                />
-              </div>
-              <label
-                className="flex items-center gap-2 text-sm col-span-2 sm:col-span-2 cursor-pointer select-none"
-                style={{ color: C.muted }}
-              >
-                <input
-                  name="trending"
-                  type="checkbox"
-                  checked={form.trending}
-                  onChange={handleChange}
-                />
-                Mark as trending
-              </label>
-              <div className="col-span-2 sm:col-span-3 flex justify-end">
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-lg text-sm font-semibold"
-                  style={{
-                    background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`,
-                    color: "#fff",
-                  }}
-                >
-                  Save Stock
-                </button>
-              </div>
-            </form>
-          )}
           <Tabs tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
           <div style={cardStyle} className="p-5 mt-8">
             <table className="w-full">

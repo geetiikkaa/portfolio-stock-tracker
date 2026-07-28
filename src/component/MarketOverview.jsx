@@ -9,17 +9,9 @@ import {
   TOP_GAINERS,
   TOP_LOSERS,
   MARKET_NEWS,
-  C,
 } from "../constants/mockDataUnified";
+import { cardStyle, C } from "../constants/ui";
 import ViewAllButton from "./ui/ViewAllButton";
-
-let cardStyle = {
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
-  borderRadius: "20px",
-  boxShadow:
-    "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
-};
 
 function Sparkline({ data, color, width = 70, height = 28 }) {
   let id = React.useId().replace(/:/g, "");

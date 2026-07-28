@@ -1,4 +1,4 @@
-import { COLORS } from "../../constants/mockDataUnified";
+import { COLORS } from "../../constants/ui";
 import { formatINR } from "../../utils/utils";
 
 export default function PieTooltip({ active, payload, total }) {

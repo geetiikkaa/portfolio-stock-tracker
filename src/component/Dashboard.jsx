@@ -12,11 +12,10 @@ import PortfolioSidebar from "./PortfolioSidebar";
 import { Link } from "react-router-dom";
 import {
   RANGE_DATA,
-  C,
-  cardStyle,
   INITIAL_TRANSACTIONS,
   indices,
 } from "../constants/mockDataUnified";
+import { cardStyle, C } from "../constants/ui";
 import { formatINR, spark } from "../utils/utils";
 import Dot from "./ui/Dot";
 import Sparkline from "./ui/Sparkline";

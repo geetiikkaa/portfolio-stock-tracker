@@ -1,10 +1,13 @@
 import { LogOut, Sparkles } from "lucide-react";
-import { NAV_ITEMS } from "../constants/mockDataUnified";
+import { NAV_ITEMS } from "../constants/ui";
 import { useNavigate, useLocation } from "react-router-dom"; // 1. Import useLocation
+import { useDispatch } from "react-redux";
+import { logout } from "../features/auth/authSlice";
 
 export default function PortfolioSidebar() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  let navigate = useNavigate();
+  let location = useLocation();
+  let dispatch = useDispatch();
 
   return (
     <>
@@ -36,7 +39,11 @@ export default function PortfolioSidebar() {
         </nav>
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            localStorage.removeItem("token");
+            dispatch(logout());
+            navigate("/");
+          }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-white/5 hover:text-gray-200 transition"
         >
           <LogOut size={17} />

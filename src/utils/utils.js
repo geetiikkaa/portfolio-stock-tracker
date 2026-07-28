@@ -20,7 +20,6 @@ export let formatINR = (value) =>
     new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
-        maximumFractionDigits: 0,
     }).format(value);
 
 function hoursAgo(label) {
@@ -49,7 +48,7 @@ export function buildHoldings(transactions, priceOverrides = {}) {
 
     [...transactions]
         .filter((tx) => tx.status === "Completed" && tx.assetClass !== "Cash")
-        .sort((a, b) => hoursAgo(b.date) - hoursAgo(a.date)) // oldest first
+        .sort((a, b) => hoursAgo(b.date) - hoursAgo(a.date))
         .forEach((tx) => {
             let key = tx.ticker;
 
@@ -100,6 +99,75 @@ export function buildHoldings(transactions, priceOverrides = {}) {
         });
 }
 
+export function trendSpark(direction, points = 24) {
+    let value = direction === "up" ? 40 : 60;
+
+    let drift = direction === "up" ? 0.4 : -0.4;
+
+    return Array.from({ length: points }, (_, i) => {
+        value += drift + (Math.random() - 0.5) * 4;
+
+        return {
+            i,
+            v: value,
+        };
+    });
+}
+// Derive potfolio holdings from this.
+export function computeHoldings(
+    transactions = [],
+    currentPrices = CURRENT_PRICES
+) {
+    const byTicker = {};
+
+    transactions
+        .filter((t) => t.status === "Completed" && t.assetClass !== "Cash")
+        .sort((a, b) => hoursAgo(b.date) - hoursAgo(a.date))
+        .forEach((t) => {
+            if (!byTicker[t.ticker]) {
+                byTicker[t.ticker] = {
+                    ticker: t.ticker,
+                    name: t.name,
+                    initial: t.initial,
+                    color: t.color,
+                    assetClass: t.assetClass,
+                    unitLabel: t.unitLabel,
+                    qty: 0,
+                    invested: 0,
+                };
+            }
+            const h = byTicker[t.ticker];
+
+            if (t.type === "Buy") {
+                h.qty += t.qty;
+                h.invested += t.amount;
+            } else if (t.type === "Sell") {
+                const avgCost = h.qty > 0 ? h.invested / h.qty : 0;
+                h.qty -= t.qty;
+                h.invested -= avgCost * t.qty;
+            }
+        });
+
+    return Object.values(byTicker)
+        .filter((h) => h.qty > 0)
+        .map((h) => {
+            const buyPrice = h.invested / h.qty;
+            const currentPrice = currentPrices[h.ticker] ?? buyPrice;
+            const currentValue = currentPrice * h.qty;
+            const pl = currentValue - h.invested;
+            const plPct = h.invested !== 0 ? (pl / h.invested) * 100 : 0;
+
+            return {
+                ...h,
+                buyPrice,
+                currentPrice,
+                invested: h.invested,
+                currentValue,
+                pl,
+                plPct,
+            };
+        });
+}
 export let spark = (
     points = 24,
     { start = 100, drift = 0.35, volatility = 3 } = {},
@@ -121,17 +189,3 @@ export let spark = (
         };
     });
 };
-export function trendSpark(direction, points = 24) {
-    let value = direction === "up" ? 40 : 60;
-
-    let drift = direction === "up" ? 0.4 : -0.4;
-
-    return Array.from({ length: points }, (_, i) => {
-        value += drift + (Math.random() - 0.5) * 4;
-
-        return {
-            i,
-            v: value,
-        };
-    });
-}

@@ -1,4 +1,4 @@
-import { C } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 
 export default function Dot({ cx, cy, index, total }) {
   if (index !== total - 1) return null;

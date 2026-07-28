@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { C } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 import { X } from "lucide-react";
 import ProfileAvatar from "./ProfileAvatar";
 import { useState } from "react";

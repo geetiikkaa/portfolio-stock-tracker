@@ -1,4 +1,4 @@
-import { TIME_RANGES } from "../../constants/mockDataUnified";
+import { TIME_RANGES } from "../../constants/ui";
 import Dropdown from "./Dropdown";
 
 export default function TimeRangeDropdown({ selectedRange, setSelectedRange }) {

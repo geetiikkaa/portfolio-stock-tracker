@@ -11,14 +11,14 @@ export default function Login() {
   let handleSubmit = async (e) => {
     e.preventDefault();
 
-    let response = await axios.post("http://localhost:8000/api/auth/login", {
+    let response = await axios.post(`${import.meta.env.VITE_BASE_URL}/auth/login`, {
       email,
       password,
     });
 
     console.log(response.data);
     localStorage.setItem("token", response.data.token);
-    let me = await axios.get("http://localhost:8000/api/auth/me", {
+    let me = await axios.get(`${import.meta.env.VITE_BASE_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${response.data.token}`,
       },

@@ -1,4 +1,4 @@
-import { COLORS } from "../../constants/mockDataUnified";
+import { COLORS } from "../../constants/ui";
 import { formatPct } from "../../utils/utils";
 
 export default function BarReturnTooltip({ active, payload }) {

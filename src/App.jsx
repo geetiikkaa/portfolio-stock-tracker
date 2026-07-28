@@ -10,22 +10,24 @@ import Analytics from "./component/Analytics";
 import Watchlist from "./component/Watchlist";
 import MarketOverview from "./component/MarketOverview";
 import RequireAuth from "./component/auth/RequireAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setUser } from "./features/auth/authSlice";
 
 function App() {
   let dispatch = useDispatch();
+  let [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) return;
+    if (!localStorage.getItem("token")) {
+      setIsLoading(false);
+      return;
+    }
 
     let fetchProfile = async () => {
       try {
-        let res = await axios.get("http://localhost:8000/api/auth/me", {
+        let res = await axios.get(`${import.meta.env.VITE_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -34,10 +36,20 @@ function App() {
         dispatch(setUser(res.data));
       } catch (err) {
         console.error(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchProfile();
   }, [dispatch]);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <>

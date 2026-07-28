@@ -11,10 +11,9 @@ import {
 } from "recharts";
 import { useMemo, memo } from "react";
 import {
-  COLORS,
   RANGE_DAYS,
-  generateGrowthSeries,
 } from "../../constants/mockDataUnified";
+import { COLORS, generateGrowthSeries } from "../../constants/ui";
 import { formatTick } from "../../utils/utils";
 import GrowthTooltip from "./GrowthToolTIp";
 import SeriesToggle from "./SeriesToggle";

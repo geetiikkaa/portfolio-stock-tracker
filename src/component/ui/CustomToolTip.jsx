@@ -1,4 +1,4 @@
-import { C } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 
 export default function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;

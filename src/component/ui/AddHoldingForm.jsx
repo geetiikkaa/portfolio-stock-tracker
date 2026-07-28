@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { cardStyle } from "../../constants/ui";
+import { formatINR } from "../../utils/utils";
+import axios from "axios";
 
 const C = {
   text: "#F3F5FB",
@@ -6,14 +9,6 @@ const C = {
   cardBorder: "rgba(255,255,255,0.06)",
   blue: "#5B72F0",
   purple: "#8C7CF6",
-};
-const cardStyle = {
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",
-  border: `1px solid ${C.cardBorder}`,
-  borderRadius: "20px",
-  boxShadow:
-    "0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -16px rgba(0,0,0,0.6)",
 };
 const AVATAR_COLORS = [
   "#5B72F0",
@@ -23,42 +18,115 @@ const AVATAR_COLORS = [
   "#8C7CF6",
   "#B49CF5",
 ];
+const inputStyle = {
+  background: "#1A2036",
+  border: `1px solid ${C.cardBorder}`,
+  color: C.text,
+};
 const emptyForm = {
-  ticker: "",
-  name: "",
+  query: "",
+  asset: null,
+  type: "Buy",
   qty: "",
-  buy: "",
-  current: "",
+  price: "",
+  date: new Date().toISOString().slice(0, 10),
 };
 
 export default function AddHoldingForm({ onSubmit, onCancel }) {
   const [form, setForm] = useState(emptyForm);
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const debounceRef = useRef(null);
+
+  function handleQueryChange(value) {
+    setForm((f) => ({ ...f, query: value, asset: null }));
+    setShowResults(true);
+    clearTimeout(debounceRef.current);
+
+    if (!value.trim()) {
+      setResults([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/assets/search?q=${encodeURIComponent(
+            value.trim(),
+          )}`,
+          {
+            credentials: "include",
+          },
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to search assets");
+        }
+
+        const data = await res.json();
+
+        setResults(data.assets || []);
+      } catch (err) {
+        console.error(err);
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+  }
+
+  async function selectAsset(asset) {
+    console.log(asset);
+    setShowResults(false);
+
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/market/quote/${asset.asset_class === "Crypto" ? asset.external_id : asset.ticker}`,
+        {
+          withCredentials: true,
+        },
+      );
+      console.log(res.data.data)
+
+      setForm((f) => ({
+        ...f,
+        asset,
+        query: asset.ticker,
+        price: res.data.data.currentPrice ?? "",
+      }));
+    } catch (err) {
+      console.error("Failed to fetch market quote:", err);
+
+      setForm((f) => ({
+        ...f,
+        asset,
+        query: asset.ticker,
+        price: "",
+      }));
+    }
+  }
+
+  const qty = Number(form.qty) || 0;
+  const price = Number(form.price) || 0;
+  const estimatedValue = qty * price;
 
   function handleSubmit(e) {
     e.preventDefault();
 
-    if (
-      !form.ticker.trim() ||
-      !form.name.trim() ||
-      !form.qty ||
-      !form.buy ||
-      !form.current
-    )
-      return;
-
-    const qty = Number(form.qty);
-    const buy = Number(form.buy);
+    if (!form.asset || !form.qty || !form.price || !form.date) return;
 
     onSubmit({
-      ticker: form.ticker.trim().toUpperCase(),
-      name: form.name.trim(),
-      initial: form.ticker.trim()[0].toUpperCase(),
-      color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+      asset: form.asset,
+      ticker: form.asset.ticker,
+      name: form.asset.name,
       qty,
-      amount: qty * buy,
-      assetClass: "Equity",
-      unitLabel: "Shares",
-      date: new Date().toISOString(),
+      price,
+      amount: qty * price,
+      asset_class: form.asset.asset_class || "Equity",
+      date: new Date(form.date).toISOString(),
+      type: form.type,
     });
     setForm(emptyForm);
     onCancel?.();
@@ -70,37 +138,72 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
       style={cardStyle}
       className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end"
     >
-      <div>
+      <div className="relative">
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
-          Ticker Symbol
+          Search Asset
         </label>
         <input
-          value={form.ticker}
-          onChange={(e) => setForm((f) => ({ ...f, ticker: e.target.value }))}
-          placeholder="AAPL"
+          value={form.query}
+          onChange={(e) => handleQueryChange(e.target.value)}
+          onFocus={() => form.query && setShowResults(true)}
+          onBlur={() => setTimeout(() => setShowResults(false), 150)}
+          placeholder="Search by ticker or name"
+          autoComplete="off"
           className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{
-            background: "#1A2036",
-            border: `1px solid ${C.cardBorder}`,
-            color: C.text,
-          }}
+          style={inputStyle}
         />
+        {showResults && (searching || results.length > 0) && (
+          <div
+            className="absolute z-10 mt-1 w-full rounded-lg overflow-hidden max-h-48 overflow-y-auto"
+            style={{
+              background: "#1A2036",
+              border: `1px solid ${C.cardBorder}`,
+            }}
+          >
+            {searching ? (
+              <div className="px-3 py-2 text-xs" style={{ color: C.muted }}>
+                Searching…
+              </div>
+            ) : (
+              results.map((asset) => (
+                <button
+                  key={asset._id}
+                  type="button"
+                  onMouseDown={() => selectAsset(asset)}
+                  className="w-full px-3 py-3 text-left hover:bg-white/5 transition"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-semibold text-white">
+                        {asset.ticker}
+                      </div>
+
+                      <div className="text-xs text-gray-400">{asset.name}</div>
+                    </div>
+
+                    <span className="text-xs px-2 py-1 rounded bg-white/10 text-gray-400">
+                      {asset.asset_class}
+                    </span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
-          Company Name
+          Transaction Type
         </label>
-        <input
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="Apple Inc."
+        <select
+          value={form.type}
+          onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
           className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{
-            background: "#1A2036",
-            border: `1px solid ${C.cardBorder}`,
-            color: C.text,
-          }}
-        />
+          style={inputStyle}
+        >
+          <option value="Buy">Buy</option>
+          <option value="Sell">Sell</option>
+        </select>
       </div>
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
@@ -112,46 +215,44 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
           onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
           placeholder="10"
           className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{
-            background: "#1A2036",
-            border: `1px solid ${C.cardBorder}`,
-            color: C.text,
-          }}
+          style={inputStyle}
         />
       </div>
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
-          Buy Price (₹)
+          Price per Share (₹)
         </label>
         <input
           type="number"
-          value={form.buy}
-          onChange={(e) => setForm((f) => ({ ...f, buy: e.target.value }))}
+          value={form.price}
+          onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
           placeholder="18000"
           className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{
-            background: "#1A2036",
-            border: `1px solid ${C.cardBorder}`,
-            color: C.text,
-          }}
+          style={inputStyle}
         />
       </div>
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
-          Current Price (₹)
+          Transaction Date
         </label>
         <input
-          type="number"
-          value={form.current}
-          onChange={(e) => setForm((f) => ({ ...f, current: e.target.value }))}
-          placeholder="21250"
+          type="date"
+          value={form.date}
+          onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
           className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{
-            background: "#1A2036",
-            border: `1px solid ${C.cardBorder}`,
-            color: C.text,
-          }}
+          style={inputStyle}
         />
+      </div>
+      <div>
+        <label className="block text-xs mb-1" style={{ color: C.muted }}>
+          Estimated Transaction Value
+        </label>
+        <div
+          className="w-full rounded-lg px-3 py-2 text-sm"
+          style={{ ...inputStyle, color: C.muted }}
+        >
+          {formatINR(estimatedValue)}
+        </div>
       </div>
       <div className="lg:col-span-3 flex justify-end gap-3">
         <button
@@ -162,7 +263,7 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
             color: "#fff",
           }}
         >
-          Save Holding
+          Save Transaction
         </button>
       </div>
     </form>

@@ -1,41 +1,67 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import PortfolioSidebar from "./PortfolioSidebar";
-import {
-  TYPE_FILTERS,
-  ASSET_TABS,
-  emptyForm,
-  cardStyle,
-  INITIAL_TRANSACTIONS,
-} from "../constants/mockDataUnified";
+import { ASSET_TABS, TYPE_FILTERS, cardStyle } from "../constants/ui";
 import Tabs from "./ui/Tabs";
 import ProfileAvatar from "./ui/ProfileAvatar";
 import Dropdown from "./ui/Dropdown";
 import ProfileModal from "./ui/ProfileModal";
 import SummaryCard from "./ui/SummaryCard";
 import TransactionRow from "./ui/TransactionRow";
+import axios from "axios";
+import AddHoldingForm from "./ui/AddHoldingForm";
 
 function filterTransactions(transactions, activeTab, typeFilter, search) {
-  let q = search.trim().toLowerCase();
+  const q = search.trim().toLowerCase();
 
-  return transactions.filter(
-    (transaction) =>
-      (activeTab === "All" || transaction.assetClass === activeTab) &&
+  return transactions.filter((transaction) => {
+    const assetClass =
+      transaction.asset_id?.asset_class ??
+      (transaction.ticker_snapshot === "CASH" ? "Cash" : "");
+    const assetName =
+      transaction.asset_id?.name || transaction.name_snapshot || "";
+
+    return (
+      (activeTab === "All" || assetClass === activeTab) &&
       (typeFilter === "All" || transaction.type === typeFilter) &&
       (q === "" ||
-        transaction.name.toLowerCase().includes(q) ||
-        transaction.ticker.toLowerCase().includes(q)),
-  );
+        assetName.toLowerCase().includes(q) ||
+        transaction.ticker_snapshot.toLowerCase().includes(q))
+    );
+  });
 }
 
 export default function Transactions() {
-  let [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  let [transactions, setTransactions] = useState([]);
   let [activeTab, setActiveTab] = useState("All");
   let [typeFilter, setTypeFilter] = useState("All");
   let [search, setSearch] = useState("");
   let [showForm, setShowForm] = useState(false);
-  let [form, setForm] = useState(emptyForm);
   let [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  let [isLoading, setIsLoading] = useState(true);
+
+  let getTransactions = async () => {
+    try {
+      let res = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/transactions`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      setTransactions(res.data.transactions);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getTransactions();
+  }, []);
 
   let filtered = useMemo(
     () => filterTransactions(transactions, activeTab, typeFilter, search),
@@ -59,44 +85,49 @@ export default function Transactions() {
       net: bought - sold,
     };
   }, [transactions]);
-  let handleDelete = (id) => {
-    setTransactions((prev) =>
-      prev.filter((transaction) => transaction.id !== id),
-    );
-  };
-  let handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.amount) return;
-    let newTxn = {
-      id: Date.now(),
-      ticker:
-        form.ticker.trim().toUpperCase() || form.name.slice(0, 4).toUpperCase(),
-      name: form.name.trim(),
-      initial: form.name.trim().slice(0, 2).toUpperCase(),
-      color: "#4b3a8c",
-      assetClass: form.assetClass,
-      type: form.type,
-      qty: form.qty ? Number(form.qty) : null,
-      unitLabel:
-        form.assetClass === "Mutual Funds"
-          ? "Units"
-          : form.assetClass === "Crypto"
-            ? form.ticker.toUpperCase()
-            : "Shares",
-      amount: Number(form.amount),
-      date: "Just now",
-      status: "Completed",
-    };
+  let handleDelete = async (id) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_BASE_URL}/transactions/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-    setTransactions((prev) => [newTxn, ...prev]);
-    setForm(emptyForm);
-    setShowForm(false);
+      await getTransactions();
+    } catch (err) {
+      console.error(err);
+    }
   };
-  let handleChange = (key) => (e) =>
-    setForm((prev) => ({
-      ...prev,
-      [key]: e.target.value,
-    }));
+
+  const handleCreateTransaction = async (tx) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/transactions`,
+        {
+          asset_id: tx.asset._id,
+          type: tx.type,
+          quantity: tx.qty,
+          price_per_unit: tx.price,
+          amount: tx.qty * tx.price,
+          occurred_at: tx.date,
+          status: "Completed",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      await getTransactions();
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <>
@@ -125,99 +156,10 @@ export default function Transactions() {
           </div>
 
           {showForm && (
-            <form
-              onSubmit={handleSubmit}
-              className="mb-6 rounded-2xl border border-white/10 bg-[#12121d] p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end"
-            >
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-400 mb-1">
-                  Stock / Asset Name
-                </label>
-                <input
-                  value={form.name}
-                  onChange={handleChange("name")}
-                  placeholder="e.g. Wipro Ltd."
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  Ticker
-                </label>
-                <input
-                  value={form.ticker}
-                  onChange={handleChange("ticker")}
-                  placeholder="WIPRO"
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  Asset Class
-                </label>
-                <select
-                  value={form.assetClass}
-                  onChange={handleChange("assetClass")}
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white outline-none focus:border-[#7c5cff]/60"
-                >
-                  {ASSET_TABS.filter((t) => t !== "All").map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Type</label>
-                <select
-                  value={form.type}
-                  onChange={handleChange("type")}
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white outline-none focus:border-[#7c5cff]/60"
-                >
-                  {TYPE_FILTERS.filter(
-                    (transaction) => transaction !== "All",
-                  ).map((transaction) => (
-                    <option key={transaction} value={transaction}>
-                      {transaction}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  value={form.qty}
-                  onChange={handleChange("qty")}
-                  placeholder="Optional"
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  value={form.amount}
-                  onChange={handleChange("amount")}
-                  placeholder="10000"
-                  required
-                  className="w-full rounded-lg bg-[#1a1a28] border border-white/10 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c5cff]/60"
-                />
-              </div>
-              <div className="col-span-2 sm:col-span-3 lg:col-span-6 flex justify-end">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-gradient-to-r from-[#5b6cff] to-[#b14ef5] px-5 py-2 text-sm font-semibold hover:opacity-90 transition"
-                >
-                  Save Transaction
-                </button>
-              </div>
-            </form>
+            <AddHoldingForm
+              onSubmit={handleCreateTransaction}
+              onCancel={() => setShowForm(false)}
+            />
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

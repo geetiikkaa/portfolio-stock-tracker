@@ -1,4 +1,4 @@
-import { cardStyle } from "../../constants/mockDataUnified";
+import { cardStyle } from "../../constants/ui";
 import { formatINR } from "../../utils/utils";
 
 export default function SummaryCard({ totals }) {

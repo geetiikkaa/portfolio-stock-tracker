@@ -1,5 +1,5 @@
 import Sparkline from "./Sparkline";
-import { C, cardStyle } from "../../constants/mockDataUnified";
+import { cardStyle, C } from "../../constants/ui";
 
 export default function StatCard({
   label,

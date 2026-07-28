@@ -1,4 +1,4 @@
-import { C } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 
 export default function EmptyState({ text }) {
   return (

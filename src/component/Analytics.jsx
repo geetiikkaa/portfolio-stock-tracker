@@ -11,10 +11,10 @@ import {
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
 import {
-  COLORS,
   MONTHLY_RETURNS,
   RANGE_OPTIONS,
 } from "../constants/mockDataUnified";
+import { COLORS } from "../constants/ui";
 import Card from "./ui/Card";
 import BarReturnTooltip from "./ui/BarReturnToolTip";
 import { formatPct } from "../utils/utils";

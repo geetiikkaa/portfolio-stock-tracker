@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { C } from "../../constants/mockDataUnified";
+import { C } from "../../constants/ui";
 import { Check, ChevronDown } from "lucide-react";
 
 export default function Dropdown({ list, selectedRange, setSelectedRange }) {
