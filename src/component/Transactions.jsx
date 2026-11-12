@@ -139,7 +139,7 @@ export default function Transactions() {
         <PortfolioSidebar />
 
         <main className="flex-1 p-8 overflow-x-auto">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <h1 className="text-2xl font-bold">Transactions</h1>
             <div className="flex gap-4">
               <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export default function Transactions() {
             />
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
             <SummaryCard totals={totals} />
           </div>
 

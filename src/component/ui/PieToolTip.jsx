@@ -1,5 +1,5 @@
 import { COLORS } from "../../constants/ui";
-import { formatINR } from "../../utils/utils";
+import { formatUSD } from "../../utils/utils";
 
 export default function PieTooltip({ active, payload, total }) {
   if (!active || !payload || !payload.length) return null;
@@ -18,7 +18,7 @@ export default function PieTooltip({ active, payload, total }) {
         <span className="text-slate-300">{d.name}</span>
       </div>
       <p className="mt-1 font-medium text-white">
-        {formatINR(d.value)} <span className="text-slate-400">({pct}%)</span>
+        {formatUSD(d.value)} <span className="text-slate-400">({pct}%)</span>
       </p>
     </div>
   );

@@ -17,7 +17,7 @@ export default function StatCard({
           <div className="text-xs" style={{ color: C.muted }}>
             {label}
           </div>
-          <div className="text-2xl font-bold mt-2" style={{ color: C.text }}>
+          <div className="text-xl font-bold mt-2" style={{ color: C.text }}>
             {value}
           </div>
         </div>

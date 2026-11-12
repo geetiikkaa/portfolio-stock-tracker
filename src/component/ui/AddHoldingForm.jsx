@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { cardStyle } from "../../constants/ui";
-import { formatINR } from "../../utils/utils";
+import { formatUSD } from "../../utils/utils";
 import axios from "axios";
 
 const C = {
@@ -88,7 +88,7 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
           withCredentials: true,
         },
       );
-      console.log(res.data.data)
+      console.log(res.data.data);
 
       setForm((f) => ({
         ...f,
@@ -136,7 +136,7 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
     <form
       onSubmit={handleSubmit}
       style={cardStyle}
-      className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end"
+      className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end mt-6"
     >
       <div className="relative">
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
@@ -220,7 +220,7 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
       </div>
       <div>
         <label className="block text-xs mb-1" style={{ color: C.muted }}>
-          Price per Share (₹)
+          Price per Share
         </label>
         <input
           type="number"
@@ -251,7 +251,7 @@ export default function AddHoldingForm({ onSubmit, onCancel }) {
           className="w-full rounded-lg px-3 py-2 text-sm"
           style={{ ...inputStyle, color: C.muted }}
         >
-          {formatINR(estimatedValue)}
+          {formatUSD(estimatedValue)}
         </div>
       </div>
       <div className="lg:col-span-3 flex justify-end gap-3">

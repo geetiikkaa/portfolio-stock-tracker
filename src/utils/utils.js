@@ -4,16 +4,19 @@ export let toggleSeries = (key, setVisibleSeries) =>
 export let formatPct = (value) => `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 
 export function formatTick(date, range) {
-    if (range === "1M") {
-        return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+    switch (range) {
+        case "1M":
+        case "3M":
+            return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+
+        case "1Y":
+            return date.getMonth() === 0
+                ? date.toLocaleDateString("en-US", { month: "short", year: "2-digit" })
+                : date.toLocaleDateString("en-US", { month: "short" });
+
+        default:
+            return date.toLocaleDateString("en-US", { month: "short" });
     }
-    if (range === "All") {
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            year: "2-digit",
-        });
-    }
-    return date.toLocaleDateString("en-US", { month: "short" });
 }
 
 export let formatINR = (value) =>
@@ -21,6 +24,13 @@ export let formatINR = (value) =>
         style: "currency",
         currency: "INR",
     }).format(value);
+
+export const formatUSD = (value) =>
+    new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 2,
+    }).format(value ?? 0);
 
 function hoursAgo(label) {
     let match = /^(\d+)([hdw])\s+ago$/.exec(label || "");

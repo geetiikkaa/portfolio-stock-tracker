@@ -15,7 +15,7 @@ export const NAV_ITEMS = [
     { label: "Watchlist", icon: Star, path: "/watchlist" },
     { label: "Analytics", icon: BarChart3, path: "/analytics" },
     { label: "Market Overview", icon: TrendingUp, path: "/market-overview" },
-    { label: "Goals", icon: Target, path: "/goals" },
+    // { label: "Goals", icon: Target, path: "/goals" },
     { label: "Transactions", icon: ArrowLeftRight, path: "/transactions" },
 ];
 export const ASSET_TABS = [
@@ -31,7 +31,6 @@ export const TIME_RANGES = [
     "This Week",
     "This Month",
     "This Year",
-    "All Time",
 ];
 export const COLORS = {
     pageBg: "#070b14",
@@ -64,6 +63,16 @@ export const C = {
     orange: "#F5A623",
     lavender: "#B49CF5",
 };
+export const TICKER_COLORS = [
+    C.blue,
+    C.purple,
+    C.green,
+    C.red,
+    "#f59e0b",
+    "#14b8a6",
+    "#6366f1",
+    "#ec4899",
+];
 export const cardStyle = {
     background:
         "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%), #11162A",

@@ -1,14 +1,25 @@
-import { TYPE_STYLES } from "../../constants/ui";
+import { TYPE_STYLES, TICKER_COLORS } from "../../constants/ui";
 import { CheckCircle2, Clock3, Trash2 } from "lucide-react";
-import { formatINR } from "../../utils/utils";
+import { formatUSD } from "../../utils/utils";
+
+export function getTickerColor(ticker = "") {
+  let hash = 0;
+
+  for (let i = 0; i < ticker.length; i++) {
+    hash = ticker.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  return TICKER_COLORS[Math.abs(hash) % TICKER_COLORS.length];
+}
 
 export default function TransactionRow({ filtered, handleDelete }) {
-  console.log(filtered);
   return (
     <>
       {filtered.map((transaction) => {
         let typeStyle = TYPE_STYLES[transaction.type];
         let TypeIcon = typeStyle.icon;
+        const ticker = transaction.ticker_snapshot || "";
+        const tickerColor = getTickerColor(ticker);
         return (
           <tr
             key={transaction.id}
@@ -17,10 +28,10 @@ export default function TransactionRow({ filtered, handleDelete }) {
             <td className="px-5 py-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ backgroundColor: transaction.color }}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                  style={{ backgroundColor: tickerColor }}
                 >
-                  {transaction.initial}
+                  {transaction.ticker_snapshot.charAt(0)}
                 </div>
                 <div>
                   <div className="font-semibold text-white">
@@ -42,11 +53,11 @@ export default function TransactionRow({ filtered, handleDelete }) {
             </td>
             <td className="px-5 py-4 text-gray-300">
               {transaction.quantity
-                ? `${transaction.quantity} ${transaction.unitLabel}`
+                ? `${transaction.quantity} ${transaction.asset_id.unitLabel}`
                 : "—"}
             </td>
             <td className="px-5 py-4 font-medium text-white">
-              {formatINR(transaction.amount)}
+              {formatUSD(transaction.amount)}
             </td>
             <td className="px-5 py-4 text-gray-400">
               {new Date(transaction.occurred_at).toLocaleDateString()}

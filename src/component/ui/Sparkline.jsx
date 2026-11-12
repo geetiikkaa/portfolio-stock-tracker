@@ -1,5 +1,5 @@
 import React from "react";
-import { ResponsiveContainer, AreaChart, Area } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, YAxis } from "recharts";
 
 export default function Sparkline({ data, color, height = 40, width = 90 }) {
   const id = React.useId().replace(/:/g, "");
@@ -16,9 +16,10 @@ export default function Sparkline({ data, color, height = 40, width = 90 }) {
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
+          <YAxis hide domain={["dataMin", "dataMax"]} />
           <Area
             type="monotone"
-            dataKey="v"
+            dataKey="value"
             stroke={color}
             strokeWidth={2}
             fill={`url(#sg-${id})`}

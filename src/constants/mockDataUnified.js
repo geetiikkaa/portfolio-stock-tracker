@@ -1,13 +1,9 @@
-import { spark } from "../utils/utils";
-import { COLORS } from "./ui";
-
 export const INITIAL_PROFILE = {
     name: "Geetika Pandey",
     email: "geetika@example.com",
     phone: "+91 98765 43210",
     location: "India",
     memberSince: "May 2024",
-    plan: "Premium Member",
     avatar: null,
 };
 export const emptyForm = {
@@ -62,39 +58,15 @@ export const RANGE_DATA = {
         ],
         changeLabel: "+12.56% (This Year)",
     },
-    "All Time": {
-        data: [
-            { label: "2021", value: 8.2 },
-            { label: "2022", value: 11.5 },
-            { label: "2023", value: 17.8 },
-            { label: "2024", value: 24.75 },
-        ],
-        changeLabel: "+68.4% (All Time)",
-    },
 };
-export const RANGE_OPTIONS = ["1M", "3M", "6M", "1Y", "All"];
+export const RANGE_OPTIONS = ["1M", "3M", "1Y"];
 export const RANGE_DAYS = {
     "1M": 30,
     "3M": 90,
-    "6M": 180,
     "1Y": 365,
-    All: 730,
 };
 
-// export const DONUT_DATA = [
-//     { name: "Equity", value: 65, color: COLORS.purple },
-//     { name: "Mutual Funds", value: 20, color: COLORS.violet },
-//     { name: "Crypto", value: 10, color: COLORS.orange },
-//     { name: "Cash", value: 5, color: COLORS.gray },
-// ];
 
-// TODO: Derive allocation from holdings.
-export const ALLOCATION = [
-    { name: "Equity", value: 1361490, color: COLORS.purple },
-    { name: "Mutual Funds", value: 495085, color: COLORS.violet },
-    { name: "Crypto", value: 371315, color: COLORS.orange },
-    { name: "Cash", value: 247540, color: COLORS.gray },
-];
 
 export const MONTHLY_RETURNS = [
     { month: "Jul", value: 5.6 },
@@ -109,254 +81,4 @@ export const MONTHLY_RETURNS = [
     { month: "Apr", value: 2.4 },
     { month: "May", value: -1.1 },
     { month: "Jun", value: 1.8 },
-];
-
-export const INITIAL_TRANSACTIONS = [
-    {
-        id: 1,
-        ticker: "AAPL",
-        name: "Apple Inc.",
-        assetClass: "Equity",
-        type: "Buy",
-        qty: 10,
-        unitLabel: "Shares",
-        amount: 21250,
-        date: "2h ago",
-        status: "Pending",
-    },
-    {
-        id: 2,
-        ticker: "RELIANCE",
-        name: "Reliance Ind.",
-        assetClass: "Equity",
-        type: "Buy",
-        qty: 5,
-        unitLabel: "Shares",
-        amount: 12890,
-        date: "5h ago",
-        status: "Completed",
-    },
-    {
-        id: 3,
-        ticker: "TCS",
-        name: "Tata Consultancy",
-        assetClass: "Equity",
-        type: "Buy",
-        qty: 8,
-        unitLabel: "Shares",
-        amount: 18190,
-        date: "1d ago",
-        status: "Completed",
-    },
-    {
-        id: 4,
-        ticker: "INFY",
-        name: "Infosys Ltd.",
-        assetClass: "Equity",
-        type: "Sell",
-        qty: 4,
-        unitLabel: "Shares",
-        amount: 6720,
-        date: "2d ago",
-        status: "Completed",
-    },
-    {
-        id: 5,
-        ticker: "HDFCBANK",
-        name: "HDFC Bank",
-        assetClass: "Equity",
-        type: "Buy",
-        qty: 6,
-        unitLabel: "Shares",
-        amount: 9000,
-        date: "3d ago",
-        status: "Pending",
-    },
-    {
-        id: 6,
-        ticker: "BTC",
-        name: "Bitcoin",
-        assetClass: "Crypto",
-        type: "Buy",
-        qty: 0.05,
-        unitLabel: "BTC",
-        amount: 215000,
-        date: "3d ago",
-        status: "Completed",
-    },
-    {
-        id: 7,
-        ticker: "ABCF",
-        name: "Axis Bluechip Fund",
-        assetClass: "Mutual Funds",
-        type: "Buy",
-        qty: 25,
-        unitLabel: "Units",
-        amount: 12500,
-        date: "4d ago",
-        status: "Pending",
-    },
-    {
-        id: 8,
-        ticker: "AAPL",
-        name: "Apple Inc.",
-        assetClass: "Equity",
-        type: "Sell",
-        qty: 2,
-        unitLabel: "Shares",
-        amount: 4250,
-        date: "4d ago",
-        status: "Completed",
-    },
-    {
-        id: 9,
-        ticker: "CASH",
-        name: "Wallet Top-up",
-        assetClass: "Cash",
-        type: "Deposit",
-        qty: null,
-        unitLabel: "",
-        amount: 5000,
-        date: "6d ago",
-        status: "Completed",
-    },
-    {
-        id: 10,
-        ticker: "CASH",
-        name: "Wallet Withdrawal",
-        assetClass: "Cash",
-        type: "Withdrawal",
-        qty: null,
-        unitLabel: "",
-        amount: 2000,
-        date: "1w ago",
-        status: "Completed",
-    },
-    {
-        id: 11,
-        ticker: "INFY",
-        name: "Infosys Ltd.",
-        assetClass: "Equity",
-        type: "Buy",
-        qty: 8,
-        unitLabel: "Shares",
-        amount: 12800,
-        date: "9d ago",
-        status: "Completed",
-    },
-];
-
-export let INDEX_CARDS = [
-    {
-        name: "NIFTY 50",
-        value: "22,302.50",
-        change: "+1.25%",
-    },
-    {
-        name: "SENSEX",
-        value: "73,525.45",
-        change: "+1.08%",
-    },
-    {
-        name: "NASDAQ",
-        value: "18,567.19",
-        change: "+1.35%",
-    },
-    {
-        name: "BANK NIFTY",
-        value: "48,125.30",
-        change: "+1.46%",
-    },
-];
-export let TOP_GAINERS = [
-    { stock: "NVDA", price: 1195.55, change: 8.24 },
-    { stock: "ADANIENT", price: 3245.6, change: 6.35 },
-    { stock: "TITAN", price: 3408.5, change: 5.21 },
-    { stock: "WIPRO", price: 512.35, change: 4.25 },
-    { stock: "COALINDIA", price: 542.6, change: 3.98 },
-    { stock: "TATAMOTORS", price: 945.2, change: 3.72 },
-    { stock: "ONGC", price: 268.15, change: 3.45 },
-    { stock: "SBIN", price: 812.9, change: 3.1 },
-    { stock: "AXISBANK", price: 1145.65, change: 2.88 },
-    { stock: "ITC", price: 438.2, change: 2.55 },
-];
-export let TOP_LOSERS = [
-    { stock: "M&M", price: 2615.9, change: -3.25 },
-    { stock: "BAJFINANCE", price: 6026.25, change: -2.45 },
-    { stock: "NESTLEIND", price: 2150.15, change: -2.1 },
-    { stock: "MARUTI", price: 10250.3, change: -1.85 },
-    { stock: "POWERGRID", price: 295.45, change: -1.65 },
-    { stock: "HINDUNILVR", price: 2480.7, change: -1.52 },
-    { stock: "ASIANPAINT", price: 2890.15, change: -1.38 },
-    { stock: "BHARTIARTL", price: 1325.4, change: -1.2 },
-    { stock: "KOTAKBANK", price: 1745.85, change: -1.05 },
-    { stock: "ULTRACEMCO", price: 9875.6, change: -0.92 },
-];
-export let MARKET_NEWS = [
-    { title: "RBI keeps repo rate unchanged", time: "2h ago" },
-    { title: "Global markets rally ahead of US CPI data", time: "4h ago" },
-    { title: "Oil prices rise on supply concerns", time: "6h ago" },
-    { title: "IT sector stocks surge on strong earnings", time: "8h ago" },
-    { title: "Rupee strengthens against the dollar", time: "10h ago" },
-    { title: "FIIs turn net buyers in Indian equities", time: "12h ago" },
-];
-export let INITIAL_STOCKS = [
-    {
-        id: 1,
-        ticker: "AAPL",
-        name: "Apple Inc.",
-        price: 21250,
-        change: 2.35,
-        favourite: true,
-        trending: true,
-    },
-    {
-        id: 2,
-        ticker: "TSLA",
-        name: "Tesla Inc.",
-        price: 182.45,
-        change: -1.25,
-        favourite: false,
-        trending: true,
-    },
-    {
-        id: 3,
-        ticker: "NVDA",
-        name: "NVIDIA Corp.",
-        price: 1195.35,
-        change: 3.2,
-        favourite: true,
-        trending: true,
-    },
-    {
-        id: 4,
-        ticker: "AMZN",
-        name: "Amazon.com",
-        price: 186.45,
-        change: 0.85,
-        favourite: false,
-        trending: false,
-    },
-    {
-        id: 5,
-        ticker: "GOOGL",
-        name: "Alphabet Inc.",
-        price: 2852.65,
-        change: 1.15,
-        favourite: true,
-        trending: false,
-    },
-]
-export let indices = [
-    {
-        name: "NIFTY 50",
-        value: "22,302.50",
-        change: "+1.25%",
-    },
-    { name: "SENSEX", value: "73,525.45", change: "+1.08%", spark: spark(10, 2) },
-    {
-        name: "NASDAQ",
-        value: "18,567.19",
-        change: "+1.35%",
-    },
 ];

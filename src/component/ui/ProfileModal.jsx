@@ -262,13 +262,6 @@ export default function ProfileModal({ isModalOpen, onModalClose }) {
                 {user.name}
               </div>
             )}
-            <div
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ background: C.orangeSoft, color: C.orange }}
-            >
-              <Star size={11} fill={C.orange} strokeWidth={0} />
-              {profile.plan}
-            </div>
           </div>
         </div>
 

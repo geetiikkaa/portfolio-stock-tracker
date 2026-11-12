@@ -6,7 +6,6 @@ import ProfileAvatar from "./ui/ProfileAvatar";
 import Tabs from "./ui/Tabs";
 import ProfileModal from "./ui/ProfileModal";
 import { C, cardStyle } from "../constants/ui";
-import { trendSpark } from "../utils/utils";
 import axios from "axios";
 
 let TABS = ["All", "Favourites", "Trending"];
@@ -22,10 +21,15 @@ function Sparkline({ data, color, width = 90, height = 36 }) {
           margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
         >
           <YAxis hide domain={["dataMin", "dataMax"]} />
-
+          <defs>
+            <linearGradient id={`wl-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.45} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <Area
             type="linear"
-            dataKey="v"
+            dataKey="value"
             stroke={color}
             strokeWidth={2}
             fill={`url(#wl-${id})`}
@@ -38,8 +42,14 @@ function Sparkline({ data, color, width = 90, height = 36 }) {
 }
 
 function WatchlistRow({ stock, onToggleFavourite, onRemove }) {
-  let positive = stock.change >= 0;
-  let changeColor = positive ? C.green : C.red;
+  const hasChange = Number.isFinite(stock.change);
+  let positive =
+    stock.spark.length > 1 && stock.spark.at(-1).value >= stock.spark[0].value;
+  let changeColor = !hasChange ? C.muted : positive ? C.green : C.red;
+  const trendUp =
+    stock.spark.length > 1 &&
+    stock.spark[stock.spark.length - 1].value >= stock.spark[0].value;
+  const chartColor = trendUp ? C.green : C.red;
 
   return (
     <tr
@@ -88,14 +98,13 @@ function WatchlistRow({ stock, onToggleFavourite, onRemove }) {
         </div>
       </td>
       <td className="py-4 text-sm" style={{ color: C.text }}>
-        ₹{stock.price.toLocaleString("en-IN")}
+        ${stock.price}
       </td>
       <td className="py-4 text-sm font-medium" style={{ color: changeColor }}>
-        {positive ? "+" : ""}
-        {stock.change.toFixed(2)}%
+        {hasChange ? `${positive ? "+" : ""}${stock.change.toFixed(2)}%` : "—"}
       </td>
       <td className="py-4">
-        <Sparkline data={stock.spark} color={changeColor} />
+        <Sparkline data={stock.spark} color={chartColor} />
       </td>
       <td className="py-4 pl-2 text-right">
         <button
@@ -154,22 +163,18 @@ export default function Watchlist() {
     return apiWatchlist.map((item) => ({
       id: item._id,
       assetId: item.asset_id?._id,
-
+      assetClass: item.asset_id?.asset_class,
+      externalId: item.asset_id?.external_id,
       ticker: item.asset_id?.ticker,
+      yahooSymbol: item.asset_id?.yahoo_symbol,
       name: item.asset_id?.name,
-
       favourite: item.favourite,
       trending: item.trending,
-
       price: item.asset_id?.currentPrice ?? 0,
       change: item.asset_id?.percentChange ?? 0,
-
       initial: item.asset_id?.ticker[0],
       color: getColor(item.asset_id?.ticker),
-
-      spark: trendSpark(
-        (item.asset_id?.percentChange ?? 0) >= 0 ? "up" : "down",
-      ),
+      spark: [],
     }));
   }
 
@@ -178,9 +183,13 @@ export default function Watchlist() {
 
     const updatedStocks = await Promise.all(
       stocks.map(async (stock) => {
+        let updatedStock = { ...stock };
+        const marketIdentifier =
+          stock.assetClass === "Crypto" ? stock.externalId : stock.ticker;
+
         try {
-          const { data } = await axios.get(
-            `${BASE_URL}/market/quote/${stock.ticker}`,
+          const quoteResponse = await axios.get(
+            `${BASE_URL}/market/quote/${encodeURIComponent(marketIdentifier)}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -189,17 +198,40 @@ export default function Watchlist() {
             },
           );
 
-          return {
-            ...stock,
-            price: data.data.currentPrice,
-            change: data.data.percentChange,
-            spark: trendSpark(data.data.percentChange >= 0 ? "up" : "down"),
-          };
-        } catch (err) {
-          console.error(`Failed to fetch quote for ${stock.ticker}`, err);
+          updatedStock.price = quoteResponse.data.data.currentPrice;
 
-          return stock;
+          updatedStock.change = quoteResponse.data.data.percentChange;
+        } catch (err) {
+          console.error(
+            `Failed to fetch quote for ${stock.ticker}`,
+            err.response?.data || err.message,
+          );
         }
+
+        try {
+          const historyResponse = await axios.get(
+            `${BASE_URL}/market/history/${encodeURIComponent(marketIdentifier)}`,
+            {
+              params: {
+                range: "1mo",
+                interval: "1d",
+              },
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            },
+          );
+
+          updatedStock.spark = historyResponse.data.data;
+        } catch (err) {
+          console.error(
+            `Failed to fetch history for ${stock.ticker}`,
+            err.response?.data || err.message,
+          );
+        }
+
+        return updatedStock;
       }),
     );
 
@@ -222,8 +254,7 @@ export default function Watchlist() {
 
       const mapped = mapWatchlist(data.watchlist);
 
-      setStocks(mapped);
-      loadQuotes(mapped);
+      await loadQuotes(mapped);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load watchlist");
     } finally {

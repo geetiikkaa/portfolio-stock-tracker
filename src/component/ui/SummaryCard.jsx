@@ -1,5 +1,5 @@
 import { cardStyle } from "../../constants/ui";
-import { formatINR } from "../../utils/utils";
+import { formatUSD } from "../../utils/utils";
 
 export default function SummaryCard({ totals }) {
   return (
@@ -12,7 +12,7 @@ export default function SummaryCard({ totals }) {
           Total Bought / Deposited
         </div>
         <div className="text-xl font-semibold text-emerald-400">
-          {formatINR(totals.bought)}
+          {formatUSD(totals.bought)}
         </div>
       </div>
       <div
@@ -21,7 +21,7 @@ export default function SummaryCard({ totals }) {
       >
         <div className="text-xs text-gray-500 mb-1">Total Sold / Withdrawn</div>
         <div className="text-xl font-semibold text-rose-400">
-          {formatINR(totals.sold)}
+          {formatUSD(totals.sold)}
         </div>
       </div>
       <div
@@ -35,7 +35,7 @@ export default function SummaryCard({ totals }) {
           }`}
         >
           {totals.net >= 0 ? "+" : "-"}
-          {formatINR(Math.abs(totals.net))}
+          {formatUSD(Math.abs(totals.net))}
         </div>
       </div>
     </>

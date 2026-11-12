@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -10,13 +10,8 @@ import {
 } from "recharts";
 import PortfolioSidebar from "./PortfolioSidebar";
 import { Link } from "react-router-dom";
-import {
-  RANGE_DATA,
-  INITIAL_TRANSACTIONS,
-  indices,
-} from "../constants/mockDataUnified";
 import { cardStyle, C } from "../constants/ui";
-import { formatINR, spark } from "../utils/utils";
+import { formatUSD, spark } from "../utils/utils";
 import Dot from "./ui/Dot";
 import Sparkline from "./ui/Sparkline";
 import StatCard from "./ui/StatCard";
@@ -27,6 +22,8 @@ import TimeRangeDropdown from "./ui/TimeRangeDropdown";
 import AssetAllocationChart from "./ui/AssetAllocationChart";
 import EmptyState from "./ui/EmptyState";
 import { useSelector } from "react-redux";
+import axios from "axios";
+import { getTickerColor } from "./ui/TransactionRow";
 
 function ViewAll({ to }) {
   return (
@@ -40,43 +37,194 @@ function ViewAll({ to }) {
   );
 }
 
+let TOKEN = localStorage.getItem("token");
+let BASE_URL = import.meta.env.VITE_BASE_URL;
+
 export default function Dashboard() {
   let user = useSelector((state) => state.auth.user);
   let [searchQuery, setSearchQuery] = useState("");
   let [selectedRange, setSelectedRange] = useState("This Year");
   let query = searchQuery.trim().toLowerCase();
+  let [recentTransactions, setRecentTransactions] = useState([]);
+  let [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
+  let [marketIndices, setMarketIndices] = useState([]);
+  let [isIndicesLoading, setIsIndicesLoading] = useState(true);
+  let [portfolio, setPortfolio] = useState(null);
+  let [isPortfolioLoading, setIsPortfolioLoading] = useState(true);
+  const [portfolioGrowth, setPortfolioGrowth] = useState([]);
+  const [isGrowthLoading, setIsGrowthLoading] = useState(true);
+  const summary = portfolio?.summary;
+  const currentValue = summary?.currentValue ?? 0;
+  const totalInvestment = summary?.totalInvestment ?? 0;
+  const totalProfitLoss = summary?.totalProfitLoss ?? 0;
+  const isProfit = totalProfitLoss >= 0;
+  const pnlSpark = useMemo(() => spark(8, 4), []);
 
-  let recentTransactions = useMemo(
-    () =>
-      INITIAL_TRANSACTIONS.slice(0, 5).map((tx) => ({
-        symbol: tx.ticker,
-        name: tx.name,
-        action:
-          tx.qty != null ? `${tx.type} ${tx.qty} ${tx.unitLabel}` : tx.type,
-        amount: formatINR(tx.amount),
-        time: tx.date,
-        color: tx.color,
-      })),
-    [],
-  );
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      try {
+        setIsPortfolioLoading(true);
+
+        const { data } = await axios.get(`${BASE_URL}/portfolio`, {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+          withCredentials: true,
+        });
+
+        setPortfolio(data.data);
+      } catch (error) {
+        console.error("Failed to load portfolio:", error);
+      } finally {
+        setIsPortfolioLoading(false);
+      }
+    };
+
+    loadPortfolio();
+  }, []);
+
+  useEffect(() => {
+    const loadMarketIndices = async () => {
+      try {
+        setIsIndicesLoading(true);
+
+        const { data } = await axios.get(`${BASE_URL}/market/indices`);
+
+        const indicesWithHistory = await Promise.all(
+          data.data.map(async (index) => {
+            try {
+              const history = await axios.get(
+                `${BASE_URL}/market/indices/${encodeURIComponent(index.symbol)}/history`,
+                {
+                  params: {
+                    range: "1d",
+                    interval: "5m",
+                  },
+                },
+              );
+
+              return {
+                ...index,
+                history: history.data.data,
+              };
+            } catch {
+              return {
+                ...index,
+                history: [],
+              };
+            }
+          }),
+        );
+
+        setMarketIndices(indicesWithHistory);
+      } catch (error) {
+        console.error("Failed to load market indices:", error);
+      } finally {
+        setIsIndicesLoading(false);
+      }
+    };
+
+    loadMarketIndices();
+  }, []);
+
+  let filteredIndices = useMemo(() => {
+    if (!query) return marketIndices;
+
+    return marketIndices.filter(
+      (index) =>
+        index.name?.toLowerCase().includes(query) ||
+        index.symbol?.toLowerCase().includes(query),
+    );
+  }, [query, marketIndices]);
+
+  useEffect(() => {
+    const loadRecentTransactions = async () => {
+      try {
+        setIsTransactionsLoading(true);
+
+        const { data } = await axios.get(`${BASE_URL}/transactions`, {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        });
+
+        setRecentTransactions(data.transactions);
+      } catch (error) {
+        console.error("Failed to load recent transactions:", error);
+      } finally {
+        setIsTransactionsLoading(false);
+      }
+    };
+
+    loadRecentTransactions();
+  }, []);
+
+  useEffect(() => {
+    const loadPortfolioGrowth = async () => {
+      try {
+        setIsGrowthLoading(true);
+
+        const rangeMap = {
+          Today: "Today",
+          "This Week": "This Week",
+          "This Month": "This Month",
+          "This Year": "This Year",
+        };
+
+        const range = rangeMap[selectedRange];
+
+        const { data } = await axios.get(`${BASE_URL}/portfolio/growth`, {
+          params: { range, page: "dashboard" },
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+          withCredentials: true,
+        });
+
+        setPortfolioGrowth(
+          data.data.portfolio.map((item) => ({
+            ...item,
+            label: new Date(item.date).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+            }),
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to load portfolio growth:", error);
+      } finally {
+        setIsGrowthLoading(false);
+      }
+    };
+
+    loadPortfolioGrowth();
+  }, [selectedRange]);
+
+  let recentTransactionRows = useMemo(() => {
+    return recentTransactions.map((tx) => {
+      const ticker = tx.ticker_snapshot || "";
+
+      return {
+        id: tx._id,
+        symbol: ticker,
+        name: tx.asset_id?.name || tx.name_snapshot || "",
+        action: tx.quantity != null ? `${tx.type} - ${tx.quantity}` : tx.type,
+        amount: formatUSD(tx.amount),
+        time: new Date(tx.occurred_at).toLocaleDateString(),
+        color: getTickerColor(ticker),
+      };
+    });
+  }, [recentTransactions]);
+
   let filteredTransactions = useMemo(() => {
-    if (!query) return recentTransactions;
+    if (!query) return recentTransactionRows;
 
-    return recentTransactions.filter(
+    return recentTransactionRows.filter(
       (tx) =>
         tx.symbol.toLowerCase().includes(query) ||
         tx.name.toLowerCase().includes(query),
     );
-  }, [query, recentTransactions]);
-  let filteredIndices = useMemo(() => {
-    if (!query) return indices;
-
-    return indices.filter((index) => index.name.toLowerCase().includes(query));
-  }, [query]);
-  const portfolioSpark = useMemo(() => spark(10, 3), []);
-  const pnlSpark = useMemo(() => spark(8, 4), []);
-
-  let selectedRangeData = RANGE_DATA[selectedRange];
+  }, [query, recentTransactionRows]);
 
   return (
     <div className="flex">
@@ -111,21 +259,42 @@ export default function Dashboard() {
         <div className="grid grid-cols-4 gap-4 mb-5">
           <StatCard
             label="Total Portfolio Value"
-            value="₹24,75,430"
-            sub={selectedRangeData.changeLabel}
-            subColor={C.green}
-            spark={portfolioSpark}
-            sparkColor={C.green}
+            value={isPortfolioLoading ? "Loading..." : formatUSD(currentValue)}
+            sub={
+              isPortfolioLoading
+                ? undefined
+                : `${isProfit ? "+" : ""}${formatUSD(totalProfitLoss)}`
+            }
+            subColor={isProfit ? C.green : C.red}
           />
           <StatCard
             label="Today's Profit / Loss"
-            value="₹6,347.21"
-            sub="+2.35%"
-            subColor={C.green}
+            value={
+              isPortfolioLoading
+                ? "Loading..."
+                : formatUSD(portfolio?.summary?.todayProfitLoss ?? 0)
+            }
+            sub={
+              isPortfolioLoading
+                ? ""
+                : `${portfolio?.summary?.todayProfitLossPercent >= 0 ? "+" : ""}${
+                    portfolio?.summary?.todayProfitLossPercent ?? 0
+                  }%`
+            }
+            subColor={
+              (portfolio?.summary?.todayProfitLoss ?? 0) >= 0 ? C.green : C.red
+            }
             spark={pnlSpark}
-            sparkColor={C.green}
+            sparkColor={
+              (portfolio?.summary?.todayProfitLoss ?? 0) >= 0 ? C.green : C.red
+            }
           />
-          <StatCard label="Total Investment" value="₹18,45,000" />
+          <StatCard
+            label="Total Investment"
+            value={
+              isPortfolioLoading ? "Loading..." : formatUSD(totalInvestment)
+            }
+          />
           <div
             style={cardStyle}
             className="p-5 flex items-center justify-between"
@@ -163,7 +332,7 @@ export default function Dashboard() {
             <div style={{ height: 230 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={selectedRangeData.data}
+                  data={portfolioGrowth}
                   margin={{ top: 20, right: 10, left: -10, bottom: 0 }}
                 >
                   <defs>
@@ -194,9 +363,7 @@ export default function Dashboard() {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: C.mutedSoft, fontSize: 12 }}
-                    tickFormatter={(v) => `₹${v.toFixed(0)}L`}
-                    domain={[0, 30]}
-                    ticks={[0, 10, 20, 30]}
+                    tickFormatter={(v) => `₹${(v / 100000).toFixed(1)}L`}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Area
@@ -206,7 +373,7 @@ export default function Dashboard() {
                     strokeWidth={2.5}
                     fill="url(#perfFill)"
                     dot={(props) => (
-                      <Dot {...props} total={selectedRangeData.data.length} />
+                      <Dot {...props} total={portfolioGrowth.length} />
                     )}
                     activeDot={{
                       r: 6,
@@ -219,9 +386,12 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           </div>
-          <AssetAllocationChart />
+          <AssetAllocationChart
+            holdings={portfolio?.holdings || []}
+            isLoading={isPortfolioLoading}
+          />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 items-start">
           <div style={cardStyle} className="p-5 col-span-2">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold" style={{ color: C.text }}>
@@ -246,14 +416,14 @@ export default function Dashboard() {
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold"
                         style={{ background: `${t.color}22`, color: t.color }}
                       >
-                        {t.symbol.slice(0, 2)}
+                        {t.symbol.slice(0, 1)}
                       </div>
                       <div>
                         <div
                           className="text-sm font-semibold"
                           style={{ color: C.text }}
                         >
-                          {t.symbol}{" "}
+                          {t.symbol}
                           <span
                             className="font-normal"
                             style={{ color: C.muted }}
@@ -293,44 +463,60 @@ export default function Dashboard() {
               <ViewAll to="/market-overview" />
             </div>
             <div className="flex flex-col gap-4">
-              {filteredIndices.length === 0 ? (
+              {isIndicesLoading ? (
+                <div
+                  className="text-sm text-center py-6"
+                  style={{ color: C.muted }}
+                >
+                  Loading market data...
+                </div>
+              ) : filteredIndices.length === 0 ? (
                 <EmptyState text={`No indices match "${searchQuery}"`} />
               ) : (
-                filteredIndices.map((index) => (
-                  <div
-                    key={index.name}
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <div
-                        className="text-sm font-medium"
-                        style={{ color: C.text }}
-                      >
-                        {index.name}
+                filteredIndices.slice(0, 3).map((index) => {
+                  const positive = index.percentChange >= 0;
+                  const changeColor = positive ? C.green : C.red;
+
+                  return (
+                    <div
+                      key={index.symbol}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <div
+                          className="text-sm font-medium"
+                          style={{ color: C.text }}
+                        >
+                          {index.name}
+                        </div>
+
+                        <div
+                          className="text-xs mt-0.5"
+                          style={{ color: C.muted }}
+                        >
+                          {index.currency === "INR" ? "₹" : "$"}
+                          {index.currentPrice}
+                        </div>
                       </div>
-                      <div
-                        className="text-xs mt-0.5"
-                        style={{ color: C.muted }}
-                      >
-                        {index.value}
+
+                      <div className="flex items-center gap-2">
+                        <Sparkline
+                          data={index.history || []}
+                          color={changeColor}
+                          width={70}
+                          height={26}
+                        />
+                        <span
+                          className="text-xs font-semibold"
+                          style={{ color: changeColor }}
+                        >
+                          {positive ? "+" : ""}
+                          {index.percentChange.toFixed(2)}%
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Sparkline
-                        data={index.spark}
-                        color={C.green}
-                        width={60}
-                        height={28}
-                      />
-                      <span
-                        className="text-xs font-semibold"
-                        style={{ color: C.green }}
-                      >
-                        {index.change}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

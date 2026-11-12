@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  // Plus,
   Trash2,
   TrendingUp,
   TrendingDown,
@@ -14,8 +13,7 @@ import ProfileAvatar from "./ui/ProfileAvatar";
 import StatCard from "./ui/StatCard";
 import { cardStyle, C } from "../constants/ui";
 import { ASSET_TABS } from "../constants/ui";
-import { formatINR } from "../utils/utils";
-// import AddHoldingForm from "./ui/AddHoldingForm";
+import { formatUSD } from "../utils/utils";
 import ProfileModal from "./ui/ProfileModal";
 import axios from "axios";
 
@@ -164,19 +162,19 @@ export default function PortfolioPage() {
     () => [
       {
         label: "Total Investment",
-        value: formatINR(totalInvestment),
+        value: formatUSD(totalInvestment),
         sub: `${displayHoldings.length} positions`,
         subColor: C.blue,
       },
       {
         label: "Current Value",
-        value: formatINR(currentValue),
+        value: formatUSD(currentValue),
         sub: "Live estimate",
         subColor: C.purple,
       },
       {
-        label: "Total P / L",
-        value: `${isProfit ? "+" : ""}${formatINR(totalProfit)}`,
+        label: "Total P/L",
+        value: `${isProfit ? "+" : ""}${formatUSD(totalProfit)}`,
         sub: `${isProfit ? "+" : ""}${totalProfitPct.toFixed(2)}%`,
         subColor: isProfit ? C.green : C.red,
         right: isProfit ? (
@@ -202,28 +200,6 @@ export default function PortfolioPage() {
         : displayHoldings.filter((h) => h.assetClass === activeTab),
     [displayHoldings, activeTab],
   );
-  // let handleAddHolding = (holding) => {
-  //   let qty = Number(holding.quantity ?? holding.qty ?? 0);
-  //   let price = Number(holding.price_per_unit ?? holding.price ?? 0);
-
-  //   setHoldings((prev) => [
-  //     ...prev,
-  //     {
-  //       assetId: holding.assetId ?? holding.ticker,
-  //       ticker: holding.ticker,
-  //       name: holding.name ?? holding.ticker,
-  //       assetClass: holding.assetClass ?? "Equity",
-  //       qty,
-  //       buy: price,
-  //       current: price,
-  //       invested: qty * price,
-  //       pl: 0,
-  //       plAmount: 0,
-  //       color: getTickerColor(holding.ticker),
-  //       initial: holding.ticker ? holding.ticker.charAt(0).toUpperCase() : "?",
-  //     },
-  //   ]);
-  // };
 
   let handleDelete = (ticker) => {
     setHoldings((prev) => prev.filter((h) => h.ticker !== ticker));
@@ -381,11 +357,11 @@ export default function PortfolioPage() {
                           }}
                         >
                           <th className="px-5 py-3 font-medium">Stock</th>
-                          <th className="px-5 py-3 font-medium">Qty</th>
+                          <th className="px-5 py-3 font-medium">Quantity</th>
                           <th className="px-5 py-3 font-medium">Buy Price</th>
                           <th className="px-5 py-3 font-medium">Current</th>
                           <th className="px-5 py-3 font-medium">Invested</th>
-                          <th className="px-5 py-3 font-medium">P / L</th>
+                          <th className="px-5 py-3 font-medium">P/L(%)</th>
                           <th className="px-5 py-3 font-medium">Actions</th>
                         </tr>
                       </thead>
@@ -416,17 +392,17 @@ export default function PortfolioPage() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-5 py-4 text-gray-300">
+                              <td className="px-5 py-4 text-gray-300 text-center">
                                 {h.qty}
                               </td>
                               <td className="px-5 py-4 text-gray-300">
-                                {formatINR(h.buy)}
+                                {formatUSD(h.buy)}
                               </td>
                               <td className="px-5 py-4 text-gray-300">
-                                {formatINR(h.current)}
+                                {formatUSD(h.current)}
                               </td>
                               <td className="px-5 py-4 text-gray-300">
-                                {formatINR(h.invested)}
+                                {formatUSD(h.invested)}
                               </td>
                               <td className="px-5 py-4">
                                 <div
@@ -449,7 +425,7 @@ export default function PortfolioPage() {
                                   }}
                                 >
                                   {plPos ? "+" : ""}
-                                  {formatINR(
+                                  {formatUSD(
                                     h.plAmount ?? (h.invested * h.pl) / 100,
                                   )}
                                 </div>
